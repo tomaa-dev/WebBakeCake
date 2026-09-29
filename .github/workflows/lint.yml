@@ -9,11 +9,12 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
-          python-version: "3.12"
+          python-version: "3.14"
+          cache: pip
 
       - name: Install dependencies
         run: pip install -r requirements-dev.txt
@@ -22,7 +23,9 @@ jobs:
         run: black --check .
 
       - name: isort
-        run: isort --check-only .
+        if: success() || failure()
+        run: isort --check-only --diff .
 
       - name: flake8
+        if: success() || failure()
         run: flake8 .
