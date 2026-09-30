@@ -56,13 +56,26 @@ Vue.createApp({
             this.EnteredNumber = el.dataset.initPhone || ''
         }
         if (el.dataset.initOpen === 'true') {
-            const modal = document.getElementById('RegModal')
-            if (modal && window.bootstrap) {
-                window.bootstrap.Modal.getOrCreateInstance(modal).show()
-            }
+            this.OpenModal()
         }
     },
     methods: {
+        OpenModal() {
+            const modal = document.getElementById('RegModal')
+            if (!modal) {
+                return
+            }
+            if (window.bootstrap && window.bootstrap.Modal) {
+                window.bootstrap.Modal.getOrCreateInstance(modal).show()
+                return
+            }
+            const trigger = document.createElement('a')
+            trigger.href = '#RegModal'
+            trigger.dataset.bsToggle = 'modal'
+            document.body.appendChild(trigger)
+            trigger.click()
+            trigger.remove()
+        },
         RegSubmit() {
             this.$refs.HiddenFormSubmitReg.click()
         },
