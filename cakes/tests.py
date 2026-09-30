@@ -147,3 +147,108 @@ class HeaderAfterRegistrationTests(TestCase):
         self.client.get("/logout/")
         body = self.client.get("/").content.decode()
         self.assertIn('data-bs-toggle="modal"', body)
+
+
+class PersonalCabinetTests(TestCase):
+    def _register(self):
+        self.client.post("/reg/", {"step": "phone", "phone": "8 999 123-45-67", "agree": "1"})
+        code = self.client.session["reg_code"]
+        self.client.post("/reg/", {"step": "code", "code": code})
+
+    def test_anonymous_visitor_is_sent_to_registration(self):
+        resp = self.client.get("/lk/")
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn("reg=Number", resp["Location"])
+        self.assertIn("next=/lk/", resp["Location"])
+
+    def test_order_page_is_closed_for_anonymous_visitor(self):
+        resp = self.client.get("/lk-order/")
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn("reg=Number", resp["Location"])
+        self.assertIn("next=/lk-order/", resp["Location"])
+
+    def test_profile_is_taken_from_the_account(self):
+        self._register()
+        user = get_user_model().objects.get(username="89991234567")
+        user.first_name = "Анна"
+        user.email = "anna@example.com"
+        user.save()
+        body = self.client.get("/lk/").content.decode()
+        self.assertIn('data-name="Анна"', body)
+        self.assertIn('data-phone="89991234567"', body)
+        self.assertIn('data-email="anna@example.com"', body)
+
+    def test_mockup_profile_is_gone_from_both_templates(self):
+        self._register()
+        for url in ("/lk/", "/lk-order/"):
+            with self.subTest(url=url):
+                body = self.client.get(url).content.decode()
+                self.assertNotIn("Ирина", body)
+                self.assertNotIn("nyam@gmail.com", body)
+
+    def test_profile_is_read_from_the_mount_element(self):
+        script = Path(settings.BASE_DIR / "static" / "js" / "lk.js").read_text(encoding="utf-8")
+        self.assertNotIn("nyam@gmail.com", script)
+        self.assertIn("mount.dataset.name", script)
+        self.assertIn("mount.dataset.phone", script)
+        self.assertIn("mount.dataset.email", script)
+
+    def test_exit_button_leads_to_logout(self):
+        self._register()
+        body = self.client.get("/lk/").content.decode()
+        self.assertIn('href="/logout/"', body)
+
+
+class ProfileSavingTests(TestCase):
+    def _register(self):
+        self.client.post("/reg/", {"step": "phone", "phone": "8 999 123-45-67", "agree": "1"})
+        code = self.client.session["reg_code"]
+        self.client.post("/reg/", {"step": "code", "code": code})
+
+    def test_name_and_email_are_saved(self):
+        self._register()
+        self.client.post("/lk/profile/", {"name": "Анна", "email": "anna@example.com"})
+        user = get_user_model().objects.get(username="89991234567")
+        self.assertEqual(user.first_name, "Анна")
+        self.assertEqual(user.email, "anna@example.com")
+
+    def test_phone_survives_an_attempt_to_change_it(self):
+        self._register()
+        self.client.post("/lk/profile/", {"name": "Анна", "email": "a@b.ru", "phone": "8000000000"})
+        self.assertTrue(get_user_model().objects.filter(username="89991234567").exists())
+        self.assertFalse(get_user_model().objects.filter(username="8000000000").exists())
+
+    def test_phone_field_is_read_only_and_absent_from_the_submit_form(self):
+        self._register()
+        body = self.client.get("/lk/").content.decode()
+        self.assertIn(':readonly="true"', body)
+        self.assertNotIn('name="phone"', body)
+
+    def test_bad_name_keeps_edit_mode_and_the_typed_value(self):
+        self._register()
+        resp = self.client.post("/lk/profile/", {"name": "Анна123", "email": "anna@example.com"})
+        body = resp.content.decode()
+        self.assertIn('data-init-edit="true"', body)
+        self.assertIn('data-name="Анна123"', body)
+        self.assertEqual(get_user_model().objects.get(username="89991234567").first_name, "")
+
+    def test_bad_email_is_rejected_server_side(self):
+        self._register()
+        self.client.post("/lk/profile/", {"name": "Анна", "email": "не-почта"})
+        self.assertEqual(get_user_model().objects.get(username="89991234567").first_name, "")
+
+    def test_profile_endpoint_is_closed_for_anonymous_visitor(self):
+        resp = self.client.post("/lk/profile/", {"name": "Анна", "email": "a@b.ru"})
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn("reg=Number", resp["Location"])
+
+    def test_header_shows_the_name_when_it_is_known(self):
+        self._register()
+        self.client.post("/lk/profile/", {"name": "Анна", "email": "anna@example.com"})
+        self.assertIn(">Анна</a>", self.client.get("/lk/").content.decode())
+        self.assertIn(">Анна</a>", self.client.get("/").content.decode())
+
+    def test_header_falls_back_to_the_phone_when_there_is_no_name(self):
+        self._register()
+        body = self.client.get("/lk/").content.decode()
+        self.assertIn(">89991234567</a>", body)

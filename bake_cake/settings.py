@@ -79,6 +79,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+LOGIN_URL = "/?reg=Number"
+
 
 LANGUAGE_CODE = "ru-ru"
 

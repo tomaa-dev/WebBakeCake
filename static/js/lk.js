@@ -1,3 +1,5 @@
+const mount = document.getElementById('LK')
+
 Vue.createApp({
     components: {
         VForm: VeeValidate.Form,
@@ -6,10 +8,10 @@ Vue.createApp({
     },
     data() {
         return {
-            Edit: false,
-            Name: 'Ирина',
-            Phone: '8 909 000-00-00',
-            Email: 'nyam@gmail.com',
+            Edit: mount.dataset.initEdit === 'true',
+            Name: mount.dataset.name || '',
+            Phone: mount.dataset.phone || '',
+            Email: mount.dataset.email || '',
             Schema: {
                 name_format: (value) => {
                     const regex = /^[a-zA-Zа-яА-я]+$/

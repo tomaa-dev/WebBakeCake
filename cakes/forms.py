@@ -7,6 +7,8 @@ when the real one lands. The version is stored alongside the consent in
 the session, so old consents stay attributable to the text they covered.
 """
 
+import re
+
 from django import forms
 
 from .models import User
@@ -37,6 +39,17 @@ class PhoneForm(forms.Form):
 
 class CodeForm(forms.Form):
     code = forms.CharField(label="Код подтверждения", max_length=4, min_length=4)
+
+
+class ProfileForm(forms.Form):
+    name = forms.CharField(label="Имя", max_length=100)
+    email = forms.EmailField(label="Почта", max_length=50)
+
+    def clean_name(self):
+        name = self.cleaned_data["name"]
+        if not re.fullmatch(r"[a-zA-Zа-яА-я]+", name):
+            raise forms.ValidationError("Имя может состоять только из букв")
+        return name
 
 
 def get_or_create_user(phone):

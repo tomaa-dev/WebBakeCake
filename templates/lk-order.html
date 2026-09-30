@@ -44,15 +44,10 @@
 				<li class="nav-item d-flex align-items-center">
 					<a class="nav-link fw-lighter me-1 cake_blue position-relative" href="#">
 						<img src="{% static 'img/shopping-cart.svg' %}" alt="">
-						<span class="position-absolute translate-middle badge rounded-pill cake__bg_pink fs_8">1</span>
+						<!--метка на иконке, убрать класс d-none чтоб появилась-->
+						<span class="position-absolute translate-middle badge rounded-pill cake__bg_pink fs_8 d-none">1</span>
 					</a>
-					<a class="nav-link fw-lighter me-1 cake_blue position-relative" href="#">
-						<img src="{% static 'img/user.svg' %}" alt="">
-						<span class="position-absolute translate-middle badge rounded-pill cake__bg_pink fs_8">1</span>
-					</a>
-					<a class="nav-link fw-lighter cake_grey fs_12" href="#">
-						Ирина
-					</a>
+					<a class="nav-link fw-lighter cake_grey fs_12" href="{% url 'cakes:lk' %}">{{ user.first_name|default:user.username }}</a>
 				</li>
 			</ul>
 		</div>

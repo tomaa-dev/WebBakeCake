@@ -2,10 +2,11 @@ import secrets
 
 from django.contrib import messages
 from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
-from .forms import CONSENT_VERSION, CodeForm, PhoneForm, get_or_create_user
+from .forms import CONSENT_VERSION, CodeForm, PhoneForm, ProfileForm, get_or_create_user
 
 
 def index(request):
@@ -15,10 +16,33 @@ def index(request):
     return render(request, "index.html", {"reg_step": step, "reg_open": reg != "", "reg_phone": phone})
 
 
+@login_required
 def lk(request):
-    return render(request, "lk.html")
+    context = {
+        "name": request.user.first_name,
+        "email": request.user.email,
+        "edit": request.GET.get("edit") == "1",
+    }
+    return render(request, "lk.html", context)
 
 
+@login_required
+def lk_profile(request):
+    form = ProfileForm(request.POST)
+    if not form.is_valid():
+        for error in form.errors.values():
+            messages.error(request, "; ".join(error))
+        return render(
+            request, "lk.html", {"name": form.data.get("name", ""), "email": form.data.get("email", ""), "edit": True}
+        )
+    request.user.first_name = form.cleaned_data["name"]
+    request.user.email = form.cleaned_data["email"]
+    request.user.save()
+    messages.success(request, "Профиль обновлён")
+    return redirect("cakes:lk")
+
+
+@login_required
 def lk_order(request):
     return render(request, "lk-order.html")
 
