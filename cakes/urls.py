@@ -9,4 +9,6 @@ urlpatterns = [
     path("", views.index, name="index"),
     path("lk/", views.lk, name="lk"),
     path("lk-order/", views.lk_order, name="lk_order"),
+    path("reg/", views.reg, name="reg"),
+    path("logout/", views.logout, name="logout"),
 ]

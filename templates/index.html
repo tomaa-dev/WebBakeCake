@@ -6,7 +6,7 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-	<link rel="stylesheet" href="{% static 'Style.css' %}">
+	<link rel="stylesheet" href="{% static 'css/Style.css' %}">
 	<!-- Для разработки: -->
 	<script src="https://unpkg.com/vue@3"></script>
 	<!-- Для продакшина: -->
@@ -62,9 +62,16 @@
 
 </header>
 <main>
+	{% if messages %}
 	<div class="container mt-header">
-		{% verbatim %}
-		<aside class="modal fade" id="RegModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="RegModalLabel" aria-hidden="true">
+		{% for message in messages %}
+		<div class="alert alert-{{ message.tags|default:'info' }} mt-5" role="alert">{{ message }}</div>
+		{% endfor %}
+	</div>
+	{% endif %}
+	<div class="container mt-header">
+		<aside class="modal fade" id="RegModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="RegModalLabel" aria-hidden="true" data-init-step="{{ reg_step }}" data-init-phone="{{ reg_phone }}">
+			{% verbatim %}
 			<div class="modal-dialog modal-dialog-centered">
 				<div class="modal-content px-4 cake__modal">
 					<div class="modal-header border-0 pb-0 pt-4">
@@ -73,10 +80,15 @@
 					<div class="modal-header border-0 py-0">
 						<label for="reg" class="modal-title font_Gogh fs_40 cake_blue" id="RegModalLabel">Вход / Регистрация</label>
 					</div>
-					<form class="d-none">
-						<input v-model="RegInput" type="text" name="REG">
+					{% endverbatim %}
+					<form class="d-none" method="post" action="{% url 'cakes:reg' %}">{% csrf_token %}
+						<input type="hidden" name="phone" :value="Step === 'Number' ? RegInput : ''">
+						<input type="hidden" name="code" :value="Step === 'Code' ? RegInput : ''">
+						<input type="hidden" name="step" :value="Step === 'Number' ? 'phone' : 'code'">
+						<input type="hidden" name="agree" :value="Agree ? '1' : ''">
 						<button type="submit" ref="HiddenFormSubmitReg">reg</button>
 					</form>
+					{% verbatim %}
 					<v-form :validation-schema="RegSchema" class="modal-body position-relative d-flex flex-column align-items-center px-5 pb-4" @submit="RegSubmit">
 						<v-field v-if="RegInput !== 'Регистрация успешна'" v-model="RegInput" name="reg" type="text" id="reg" :placeholder="Step === `Number` ? `Введите ваш номер` : `Введите код`" class="form-control cake__textinput"></v-field>
 						<v-field v-if="Step === 'Number'" v-model="RegInput" type="phone" name="phone_format" class="d-none"></v-field>
@@ -93,10 +105,19 @@
 						<error-message name="code_format" class="fs_12 cake_pink text-center position-absolute bottom-0"></error-message>
 					</v-form>
 
+					{% endverbatim %}
 					<div class="modal-footer d-flex flex-column justify-content-between align-items-center text-center border-0 mx-5">
-						<p class="fs_12 cake_grey">{{Step === `Number` ? `Нажимая на кнопку, вы соглашаетесь на обработку персональных данных в соответствии с политикой конфиденциальности` : Step === 'Code' ? `Осталось времени: 05:00` : ``}}</p>
-						<a href="#" v-if="Step === `Code`" @click.prevent="ToRegStep1" class="text-decoration-none cake_pink fs_12">изменить данные</a>
+						<a href="#" v-if="Step === 'Code'" @click.prevent="ToRegStep1" class="text-decoration-none cake_pink fs_12">изменить данные</a>
+						<div class="d-flex align-items-start gap-2 mt-3">
+							<v-field v-model="Agree" name="agree" type="checkbox" value="1" id="pdConsent" class="form-check-input flex-shrink-0 mt-1"></v-field>
+							<label for="pdConsent" class="fs_12 cake_grey text-start">
+								Я согласен(на) на обработку персональных данных
+								<a href="{% static 'privacy/pd.pdf' %}" target="_blank" rel="noopener" class="cake_pink">в соответствии с политикой конфиденциальности</a>
+							</label>
+						</div>
+						<error-message name="agree" class="fs_12 cake_pink text-center mt-1"></error-message>
 					</div>
+					{% verbatim %}
 				</div>
 			</div>
 		</aside>
@@ -437,7 +458,7 @@
 </footer>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 
-<script src="{% static 'index.js' %}"></script>
-<script src="{% static 'registration.js' %}"></script>
+<script src="{% static 'js/index.js' %}"></script>
+<script src="{% static 'js/registration.js' %}"></script>
 </body>
 </html>
