@@ -38,6 +38,37 @@ class PhoneFieldTests(TestCase):
         self.assertFalse(PhoneForm({"phone": "+7 999 123-45-67", "agree": ""}).is_valid())
 
 
+class PhoneRegionTests(TestCase):
+    """region="RU" задаёт регион по умолчанию, но не ограничивает страну."""
+
+    def test_foreign_numbers_are_rejected(self):
+        for raw in ("+1 202 555 0147", "+49 151 12345678", "+375 29 1234567", "+380 44 1234567"):
+            with self.subTest(raw=raw):
+                form = PhoneForm({"phone": raw, "agree": "1"})
+                self.assertFalse(form.is_valid(), f"{raw} прошёл валидацию")
+
+    def test_foreign_number_gets_a_clear_message(self):
+        form = PhoneForm({"phone": "+1 202 555 0147", "agree": "1"})
+        form.is_valid()
+        self.assertIn("только российские номера", str(form.errors["phone"]))
+
+    def test_russian_number_still_passes(self):
+        form = PhoneForm({"phone": "+7 999 123-45-67", "agree": "1"})
+        self.assertTrue(form.is_valid(), form.errors)
+
+    def test_foreign_number_is_not_treated_as_a_format_problem(self):
+        """Номер разбирается как телефон, но отклоняется по стране."""
+        form = PhoneForm({"phone": "+1 202 555 0147", "agree": "1"})
+        form.is_valid()
+        self.assertNotIn("корректный российский номер", str(form.errors["phone"]))
+
+    def test_foreign_number_never_reaches_the_session(self):
+        resp = self.client.post("/reg/", {"step": "phone", "phone": "+1 202 555 0147", "agree": "1"})
+        self.assertIn("phone-error", resp["Location"])
+        self.assertNotIn("reg_phone", self.client.session)
+        self.assertFalse(User.objects.exists())
+
+
 class ConsentRequiredTests(TestCase):
     """Согласие на ПД обязательно на обоих шагах регистрации."""
 
