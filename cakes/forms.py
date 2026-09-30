@@ -37,13 +37,6 @@ class PhoneForm(forms.Form):
 
 class CodeForm(forms.Form):
     code = forms.CharField(label="Код подтверждения", max_length=4, min_length=4)
-    agree = forms.BooleanField(
-        label="Согласие на обработку персональных данных",
-        error_messages={"required": "Без согласия на обработку персональных данных регистрация невозможна"},
-    )
-
-    def clean_agree(self):
-        return True
 
 
 def get_or_create_user(phone):

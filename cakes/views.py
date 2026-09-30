@@ -45,15 +45,15 @@ def reg(request):
 
         phone = request.session.pop("reg_phone", None)
         request.session.pop("reg_code", None)
+        consent = request.session.pop("reg_consent", None)
         if not phone:
+            return _fail(request, "phone-error")
+        if not consent or consent["phone"] != phone:
+            messages.error(request, "Подтвердите согласие на обработку персональных данных")
             return _fail(request, "phone-error")
 
         user, _ = get_or_create_user(phone)
-        request.session["pd_consent"] = {
-            "phone": phone,
-            "at": timezone.now().isoformat(),
-            "version": CONSENT_VERSION,
-        }
+        request.session["pd_consent"] = consent
         login(request, user)
         messages.success(request, f"Готово, вы зарегистрированы как {phone}")
         return redirect("/")
@@ -66,6 +66,11 @@ def reg(request):
     code = f"{secrets.randbelow(9000) + 1000:04d}"
     request.session["reg_phone"] = phone
     request.session["reg_code"] = code
+    request.session["reg_consent"] = {
+        "phone": phone,
+        "at": timezone.now().isoformat(),
+        "version": CONSENT_VERSION,
+    }
     messages.info(request, f"Демо-режим: код подтверждения — {code}. Введите его в окне.")
     return redirect("/?reg=code")
 

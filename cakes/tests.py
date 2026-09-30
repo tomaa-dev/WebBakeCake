@@ -13,17 +13,26 @@ class ConsentRequiredTests(TestCase):
         self.assertIn("phone-error", resp["Location"])
         self.assertFalse(User.objects.filter(username="9991234567").exists())
 
-    def test_code_step_blocked_without_consent(self):
+    def test_consent_is_asked_only_on_the_phone_step(self):
         self.client.post("/reg/", {"step": "phone", "phone": "9991234567", "agree": "1"})
         code = self.client.session["reg_code"]
-        resp = self.client.post("/reg/", {"step": "code", "code": code, "agree": ""})
-        self.assertIn("code-error", resp["Location"])
-        self.assertFalse(User.objects.filter(username="9991234567").exists())
+        resp = self.client.post("/reg/", {"step": "code", "code": code})
+        self.assertEqual(resp["Location"], "/")
+        self.assertIn("_auth_user_id", self.client.session)
+
+    def test_code_step_rejected_when_phone_step_had_no_consent(self):
+        session = self.client.session
+        session["reg_phone"] = "9991234567"
+        session["reg_code"] = "1234"
+        session.save()
+        resp = self.client.post("/reg/", {"step": "code", "code": "1234"})
+        self.assertIn("phone-error", resp["Location"])
+        self.assertFalse(User.objects.exists())
 
     def test_consent_is_stored_on_success(self):
         self.client.post("/reg/", {"step": "phone", "phone": "8 999 123-45-67", "agree": "1"})
         code = self.client.session["reg_code"]
-        self.client.post("/reg/", {"step": "code", "code": code, "agree": "1"})
+        self.client.post("/reg/", {"step": "code", "code": code})
 
         user = User.objects.get(username="89991234567")
         self.assertEqual(str(user), "89991234567")
@@ -103,3 +112,27 @@ class IndexTemplateTests(TestCase):
         agree = body.index('name="agree"', body.index('<v-field v-model="Agree"'))
         self.assertLess(start, agree)
         self.assertLess(agree, end)
+
+
+class HeaderAfterRegistrationTests(TestCase):
+    def _register(self):
+        self.client.post("/reg/", {"step": "phone", "phone": "8 999 123-45-67", "agree": "1"})
+        code = self.client.session["reg_code"]
+        return self.client.post("/reg/", {"step": "code", "code": code})
+
+    def test_icon_opens_modal_for_anonymous_visitor(self):
+        body = self.client.get("/").content.decode()
+        self.assertIn('data-bs-toggle="modal"', body)
+        self.assertNotIn("89991234567", body)
+
+    def test_phone_replaces_icon_after_registration(self):
+        self._register()
+        body = self.client.get("/").content.decode()
+        self.assertIn("89991234567", body)
+        self.assertNotIn('data-bs-toggle="modal"', body)
+
+    def test_logout_restores_the_icon(self):
+        self._register()
+        self.client.get("/logout/")
+        body = self.client.get("/").content.decode()
+        self.assertIn('data-bs-toggle="modal"', body)
