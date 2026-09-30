@@ -4,7 +4,38 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
+from .forms import PhoneForm
+
 User = get_user_model()
+
+
+class PhoneFieldTests(TestCase):
+    """Телефон проверяется библиотекой, а не самописным регулярным выражением."""
+
+    def test_every_russian_spelling_collapses_to_one_key(self):
+        for raw in (
+            "+7 999 123-45-67",
+            "8 999 123-45-67",
+            "8(999)123-45-67",
+            "79991234567",
+            "9991234567",
+        ):
+            with self.subTest(raw=raw):
+                form = PhoneForm({"phone": raw, "agree": "1"})
+                self.assertTrue(form.is_valid(), form.errors)
+                self.assertEqual(str(form.cleaned_data["phone"]), "+79991234567")
+
+    def test_truncated_number_is_rejected(self):
+        self.assertFalse(PhoneForm({"phone": "+7 999 123-45-6", "agree": "1"}).is_valid())
+
+    def test_letters_are_rejected(self):
+        self.assertFalse(PhoneForm({"phone": "не телефон", "agree": "1"}).is_valid())
+
+    def test_empty_number_is_rejected(self):
+        self.assertFalse(PhoneForm({"phone": "", "agree": "1"}).is_valid())
+
+    def test_consent_is_still_required(self):
+        self.assertFalse(PhoneForm({"phone": "+7 999 123-45-67", "agree": ""}).is_valid())
 
 
 class ConsentRequiredTests(TestCase):
@@ -14,7 +45,7 @@ class ConsentRequiredTests(TestCase):
         resp = self.client.post("/reg/", {"step": "phone", "phone": "9991234567", "agree": ""})
         self.assertEqual(resp.status_code, 302)
         self.assertIn("phone-error", resp["Location"])
-        self.assertFalse(User.objects.filter(username="9991234567").exists())
+        self.assertFalse(User.objects.filter(username="+79991234567").exists())
 
     def test_consent_is_asked_only_on_the_phone_step(self):
         self.client.post("/reg/", {"step": "phone", "phone": "9991234567", "agree": "1"})
@@ -25,7 +56,7 @@ class ConsentRequiredTests(TestCase):
 
     def test_code_step_rejected_when_phone_step_had_no_consent(self):
         session = self.client.session
-        session["reg_phone"] = "9991234567"
+        session["reg_phone"] = "+79991234567"
         session["reg_code"] = "1234"
         session.save()
         resp = self.client.post("/reg/", {"step": "code", "code": "1234"})
@@ -37,13 +68,13 @@ class ConsentRequiredTests(TestCase):
         code = self.client.session["reg_code"]
         self.client.post("/reg/", {"step": "code", "code": code})
 
-        user = User.objects.get(username="89991234567")
-        self.assertEqual(str(user), "89991234567")
+        user = User.objects.get(username="+79991234567")
+        self.assertEqual(str(user), "+79991234567")
         self.assertIn("_auth_user_id", self.client.session)
 
         consent = self.client.session["pd_consent"]
         self.assertEqual(consent["version"], "1.0")
-        self.assertEqual(consent["phone"], "89991234567")
+        self.assertEqual(consent["phone"], "+79991234567")
         self.assertIn("at", consent)
 
 
@@ -70,7 +101,7 @@ class RegistrationFlowTests(TestCase):
             self.client.post("/reg/", {"step": "phone", "phone": "9991234567", "agree": "1"})
             code = self.client.session["reg_code"]
             self.client.post("/reg/", {"step": "code", "code": code, "agree": "1"})
-        self.assertEqual(User.objects.filter(username="9991234567").count(), 1)
+        self.assertEqual(User.objects.filter(username="+79991234567").count(), 1)
 
     def test_logout_clears_session(self):
         self.client.post("/reg/", {"step": "phone", "phone": "9991234567", "agree": "1"})
@@ -134,12 +165,12 @@ class HeaderAfterRegistrationTests(TestCase):
     def test_icon_opens_modal_for_anonymous_visitor(self):
         body = self.client.get("/").content.decode()
         self.assertIn('data-bs-toggle="modal"', body)
-        self.assertNotIn("89991234567", body)
+        self.assertNotIn("+79991234567", body)
 
     def test_phone_replaces_icon_after_registration(self):
         self._register()
         body = self.client.get("/").content.decode()
-        self.assertIn("89991234567", body)
+        self.assertIn("+79991234567", body)
         self.assertNotIn('data-bs-toggle="modal"', body)
 
     def test_logout_restores_the_icon(self):
@@ -169,13 +200,13 @@ class PersonalCabinetTests(TestCase):
 
     def test_profile_is_taken_from_the_account(self):
         self._register()
-        user = get_user_model().objects.get(username="89991234567")
+        user = get_user_model().objects.get(username="+79991234567")
         user.first_name = "Анна"
         user.email = "anna@example.com"
         user.save()
         body = self.client.get("/lk/").content.decode()
         self.assertIn('data-name="Анна"', body)
-        self.assertIn('data-phone="89991234567"', body)
+        self.assertIn('data-phone="+79991234567"', body)
         self.assertIn('data-email="anna@example.com"', body)
 
     def test_mockup_profile_is_gone_from_both_templates(self):
@@ -208,14 +239,14 @@ class ProfileSavingTests(TestCase):
     def test_name_and_email_are_saved(self):
         self._register()
         self.client.post("/lk/profile/", {"name": "Анна", "email": "anna@example.com"})
-        user = get_user_model().objects.get(username="89991234567")
+        user = get_user_model().objects.get(username="+79991234567")
         self.assertEqual(user.first_name, "Анна")
         self.assertEqual(user.email, "anna@example.com")
 
     def test_phone_survives_an_attempt_to_change_it(self):
         self._register()
         self.client.post("/lk/profile/", {"name": "Анна", "email": "a@b.ru", "phone": "8000000000"})
-        self.assertTrue(get_user_model().objects.filter(username="89991234567").exists())
+        self.assertTrue(get_user_model().objects.filter(username="+79991234567").exists())
         self.assertFalse(get_user_model().objects.filter(username="8000000000").exists())
 
     def test_phone_field_is_read_only_and_absent_from_the_submit_form(self):
@@ -230,12 +261,12 @@ class ProfileSavingTests(TestCase):
         body = resp.content.decode()
         self.assertIn('data-init-edit="true"', body)
         self.assertIn('data-name="Анна123"', body)
-        self.assertEqual(get_user_model().objects.get(username="89991234567").first_name, "")
+        self.assertEqual(get_user_model().objects.get(username="+79991234567").first_name, "")
 
     def test_bad_email_is_rejected_server_side(self):
         self._register()
         self.client.post("/lk/profile/", {"name": "Анна", "email": "не-почта"})
-        self.assertEqual(get_user_model().objects.get(username="89991234567").first_name, "")
+        self.assertEqual(get_user_model().objects.get(username="+79991234567").first_name, "")
 
     def test_profile_endpoint_is_closed_for_anonymous_visitor(self):
         resp = self.client.post("/lk/profile/", {"name": "Анна", "email": "a@b.ru"})
@@ -251,4 +282,4 @@ class ProfileSavingTests(TestCase):
     def test_header_falls_back_to_the_phone_when_there_is_no_name(self):
         self._register()
         body = self.client.get("/lk/").content.decode()
-        self.assertIn(">89991234567</a>", body)
+        self.assertIn(">+79991234567</a>", body)
