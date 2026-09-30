@@ -1,3 +1,6 @@
+from pathlib import Path
+
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
@@ -109,9 +112,17 @@ class IndexTemplateTests(TestCase):
         body = self.client.get("/").content.decode()
         start = body.index("<v-form")
         end = body.index("</v-form>")
-        agree = body.index('name="agree"', body.index('<v-field v-model="Agree"'))
-        self.assertLess(start, agree)
-        self.assertLess(agree, end)
+        checkbox = body.index('id="pdConsent"')
+        opening_tag = body.rindex("<v-field", start, checkbox)
+        self.assertLess(start, opening_tag)
+        self.assertLess(checkbox, end)
+        self.assertIn('name="agree"', body[opening_tag:checkbox])
+
+    def test_consent_rule_lives_on_the_field_not_in_the_shared_schema(self):
+        schema = self.client.get("/").content.decode()
+        script = Path(settings.BASE_DIR / "static" / "js" / "registration.js").read_text(encoding="utf-8")
+        self.assertNotIn("agree:", script)
+        self.assertIn(":rules=", schema)
 
 
 class HeaderAfterRegistrationTests(TestCase):
