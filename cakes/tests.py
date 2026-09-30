@@ -86,3 +86,20 @@ class IndexTemplateTests(TestCase):
     def test_step_reaches_modal(self):
         self.assertIn('data-init-step="Number"', self.client.get("/").content.decode())
         self.assertIn('data-init-step="Code"', self.client.get("/?reg=code").content.decode())
+
+    def test_modal_stays_closed_on_plain_index(self):
+        self.assertIn('data-init-open="false"', self.client.get("/").content.decode())
+
+    def test_modal_reopens_on_every_registration_redirect(self):
+        for flag in ("code", "code-error", "phone-error"):
+            with self.subTest(flag=flag):
+                body = self.client.get(f"/?reg={flag}").content.decode()
+                self.assertIn('data-init-open="true"', body)
+
+    def test_consent_checkbox_is_inside_the_vee_validate_form(self):
+        body = self.client.get("/").content.decode()
+        start = body.index("<v-form")
+        end = body.index("</v-form>")
+        agree = body.index('name="agree"', body.index('<v-field v-model="Agree"'))
+        self.assertLess(start, agree)
+        self.assertLess(agree, end)

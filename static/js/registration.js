@@ -50,15 +50,15 @@ Vue.createApp({
         }
     },
     mounted() {
-        const init = this.$el.dataset.initStep
-        if (init === 'Code') {
+        const el = this.$el
+        if (el.dataset.initStep === 'Code') {
             this.Step = 'Code'
-            this.EnteredNumber = this.$el.dataset.initPhone || ''
+            this.EnteredNumber = el.dataset.initPhone || ''
         }
-        if (init && init !== 'Number') {
-            const el = document.getElementById('RegModal')
-            if (el && window.bootstrap) {
-                window.bootstrap.Modal.getOrCreateInstance(el).show()
+        if (el.dataset.initOpen === 'true') {
+            const modal = document.getElementById('RegModal')
+            if (modal && window.bootstrap) {
+                window.bootstrap.Modal.getOrCreateInstance(modal).show()
             }
         }
     },
