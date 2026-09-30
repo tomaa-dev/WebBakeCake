@@ -50,7 +50,7 @@ Vue.createApp({
         }
     },
     mounted() {
-        const el = this.$el
+        const el = document.getElementById('RegModal') || this.$el
         if (el.dataset.initStep === 'Code') {
             this.Step = 'Code'
             this.EnteredNumber = el.dataset.initPhone || ''
