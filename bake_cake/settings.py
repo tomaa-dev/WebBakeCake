@@ -26,6 +26,8 @@ INSTALLED_APPS = [
     "cakes",
 ]
 
+AUTH_USER_MODEL = "cakes.User"
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
