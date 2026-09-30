@@ -1,4 +1,4 @@
-{% load static %}
+﻿{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -20,22 +20,22 @@
 		<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
 			<span class="navbar-toggler-icon"></span>
 		</button>
-		<a class="navbar-brand" href="#">
+		<a class="navbar-brand" href="{% url 'cakes:index' %}">
 			<img src="{% static 'img/Logo.svg' %}" alt="CakeBake">
 		</a>
 		<div class="collapse navbar-collapse justify-content-end" id="navbar">
 			<ul class="navbar-nav">
 				<li class="nav-item me-5">
-					<a class="nav-link fw-lighter cake_blue" href="./index.html#step3">Создать торт</a>
+					<a class="nav-link fw-lighter cake_blue" href="{% url 'cakes:index' %}#step3">Создать торт</a>
 				</li>
 				<li class="nav-item me-5">
-					<a class="nav-link fw-lighter cake_blue" href="./index.html#step2">Каталог</a>
+					<a class="nav-link fw-lighter cake_blue" href="{% url 'cakes:index' %}#step2">Каталог</a>
 				</li>
 				<li class="nav-item me-5">
-					<a class="nav-link fw-lighter cake_blue" href="./index.html#step4">Оплата и доставка</a>
+					<a class="nav-link fw-lighter cake_blue" href="{% url 'cakes:index' %}#step4">Оплата и доставка</a>
 				</li>
 				<li class="nav-item me-5">
-					<a class="nav-link fw-lighter cake_blue" href="./index.html#Contacts">Контакты</a>
+					<a class="nav-link fw-lighter cake_blue" href="{% url 'cakes:index' %}#Contacts">Контакты</a>
 				</li>
 				<li class="nav-item d-block d-xl-flex flex-column align-items-end me-5">
 					<small class="fw-lighter text-decoration-none fs_12 cake_blue">8 (495) 000-00-00</small>
@@ -114,7 +114,7 @@
 			</v-form>
 			<h2 class="fs_40 cake_pink mt-5">Мои заказы</h2>
 			<span class="cake_grey">У вас еще нет заказов.</span>
-			<p class="cake_grey">Вы можете добавить торт из <a href="./index.html#step2" class="text-decoration-none cake_pink">Каталога</a> или <a href="./index.html#step3" class="text-decoration-none cake_pink">Создать свой</a>.</p>
+			<p class="cake_grey">Вы можете добавить торт из <a href="{% url 'cakes:index' %}#step2" class="text-decoration-none cake_pink">Каталога</a> или <a href="{% url 'cakes:index' %}#step3" class="text-decoration-none cake_pink">Создать свой</a>.</p>
 			<span class="cake_grey">Есть вопросы?</span>
 			<span class="cake_grey">Воспользуйтесь нашим <a href="https://vk.com/devmanorg" class="text-decoration-none cake_pink">чат-ботом</a>.</span>
 			<button class="btn text-white rounded-pill align-self-end px-5 mt-3 shadow-none cake__button cake__bg_pink">Выйти</button>

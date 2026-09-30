@@ -14,12 +14,6 @@ Vue.createApp({
                     }
                     return 'Поле не заполнено';
                 },
-                agree: (value) => {
-                    if (value) {
-                        return true;
-                    }
-                    return 'Без согласия на обработку персональных данных продолжить нельзя';
-                },
                 phone_format: (value) => {
                     const regex = /^((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}$/
                     if (!value) {

@@ -112,7 +112,7 @@
 					<div class="modal-footer d-flex flex-column justify-content-between align-items-center text-center border-0">
 						<a href="#" v-if="Step === 'Code'" @click.prevent="ToRegStep1" class="text-decoration-none cake_pink fs_12">изменить данные</a>
 						<div class="d-flex align-items-start gap-2 mt-3 px-2" v-if="Step === 'Number'">
-							<v-field v-model="Agree" name="agree" type="checkbox" value="1" id="pdConsent" class="form-check-input flex-shrink-0 mt-1"></v-field>
+							<v-field v-if="Step === 'Number'" v-model="Agree" name="agree" type="checkbox" value="1" id="pdConsent" :rules="{ required: 'Без согласия на обработку персональных данных продолжить нельзя' }" class="form-check-input flex-shrink-0 mt-1"></v-field>
 							<div class="consent__text">
 								<label for="pdConsent" class="fs_12 cake_grey text-start">Согласен(на) на обработку персональных данных</label>
 								<a href="{% static 'privacy/pd.pdf' %}" target="_blank" rel="noopener" class="cake_pink fs_12 d-inline-block mt-1">Политика конфиденциальности (PDF)</a>
