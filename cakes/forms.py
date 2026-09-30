@@ -1,3 +1,12 @@
+"""Forms for phone registration.
+
+CONSENT_VERSION records which revision of static/privacy/pd.pdf the user
+agreed to. That PDF is currently a draft written for the MVP, not a
+document approved by the client: replace the file and bump this constant
+when the real one lands. The version is stored alongside the consent in
+the session, so old consents stay attributable to the text they covered.
+"""
+
 from django import forms
 
 from .models import User
