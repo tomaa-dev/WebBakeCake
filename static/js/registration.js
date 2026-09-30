@@ -1,4 +1,5 @@
 Vue.createApp({
+    name: "RegApp",
     components: {
         VForm: VeeValidate.Form,
         VField: VeeValidate.Field,
@@ -38,22 +39,39 @@ Vue.createApp({
             },
             Step: 'Number',
             RegInput: '',
-            EnteredNumber: ''
+            EnteredNumber: '',
+            Agree: false
+        }
+    },
+    mounted() {
+        const el = document.getElementById('RegModal') || this.$el
+        if (el.dataset.initStep === 'Code') {
+            this.Step = 'Code'
+            this.EnteredNumber = el.dataset.initPhone || ''
+        }
+        if (el.dataset.initOpen === 'true') {
+            this.OpenModal()
         }
     },
     methods: {
+        OpenModal() {
+            const modal = document.getElementById('RegModal')
+            if (!modal) {
+                return
+            }
+            if (window.bootstrap && window.bootstrap.Modal) {
+                window.bootstrap.Modal.getOrCreateInstance(modal).show()
+                return
+            }
+            const trigger = document.createElement('a')
+            trigger.href = '#RegModal'
+            trigger.dataset.bsToggle = 'modal'
+            document.body.appendChild(trigger)
+            trigger.click()
+            trigger.remove()
+        },
         RegSubmit() {
-            if (this.Step === 'Number') {
-                this.$refs.HiddenFormSubmitReg.click()
-                this.Step = 'Code'
-                this.EnteredNumber = this.RegInput
-                this.RegInput = ''
-            }
-            else {
-                this.$refs.HiddenFormSubmitReg.click()
-                this.Step = 'Finish'
-                this.RegInput = 'Регистрация успешна'
-            }
+            this.$refs.HiddenFormSubmitReg.click()
         },
         ToRegStep1() {
             this.Step = 'Number'
@@ -62,7 +80,8 @@ Vue.createApp({
         Reset() {
             this.Step = 'Number'
             this.RegInput = ''
-            EnteredNumber = ''
+            this.EnteredNumber = ''
+            this.Agree = false
         }
     }
 }).mount('#RegModal')

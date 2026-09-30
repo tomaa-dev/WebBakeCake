@@ -6,7 +6,7 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-	<link rel="stylesheet" href="{% static 'Style.css' %}">
+	<link rel="stylesheet" href="{% static 'css/Style.css' %}">
 	<!-- Для разработки: -->
 	<script src="https://unpkg.com/vue@3"></script>
 	<!-- Для продакшина: -->
@@ -47,14 +47,15 @@
 						<!--метка на иконке, убрать класс d-none чтоб появилась-->
 						<span class="position-absolute translate-middle badge rounded-pill cake__bg_pink fs_8 d-none">1</span>
 					</a>
+					{% if user.is_authenticated %}
+					<a class="nav-link fw-lighter cake_grey fs_12" href="{% url 'cakes:lk' %}">{{ user.username }}</a>
+					{% else %}
 					<a class="nav-link fw-lighter me-1 cake_blue position-relative" href="#RegModal" data-bs-toggle="modal">
 						<img src="{% static 'img/user.svg' %}" alt="">
 						<!--метка на иконке, убрать класс d-none чтоб появилась-->
 						<span class="position-absolute translate-middle badge rounded-pill cake__bg_pink fs_8 d-none">1</span>
 					</a>
-					<a class="nav-link fw-lighter cake_grey fs_12 d-none" href="#">
-						Ирина
-					</a>
+					{% endif %}
 				</li>
 			</ul>
 		</div>
@@ -62,9 +63,16 @@
 
 </header>
 <main>
+	{% if messages %}
 	<div class="container mt-header">
-		{% verbatim %}
-		<aside class="modal fade" id="RegModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="RegModalLabel" aria-hidden="true">
+		{% for message in messages %}
+		<div class="alert alert-{{ message.tags|default:'info' }} mt-5" role="alert">{{ message }}</div>
+		{% endfor %}
+	</div>
+	{% endif %}
+	<div class="container mt-header">
+		<aside class="modal fade" id="RegModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="RegModalLabel" aria-hidden="true" data-init-step="{{ reg_step }}" data-init-phone="{{ reg_phone }}" data-init-open="{{ reg_open|yesno:'true,false' }}">
+			{% verbatim %}
 			<div class="modal-dialog modal-dialog-centered">
 				<div class="modal-content px-4 cake__modal">
 					<div class="modal-header border-0 pb-0 pt-4">
@@ -73,30 +81,52 @@
 					<div class="modal-header border-0 py-0">
 						<label for="reg" class="modal-title font_Gogh fs_40 cake_blue" id="RegModalLabel">Вход / Регистрация</label>
 					</div>
-					<form class="d-none">
-						<input v-model="RegInput" type="text" name="REG">
+					{% endverbatim %}
+					<form class="d-none" method="post" action="{% url 'cakes:reg' %}">{% csrf_token %}
+						<input type="hidden" name="phone" :value="Step === 'Number' ? RegInput : ''">
+						<input type="hidden" name="code" :value="Step === 'Code' ? RegInput : ''">
+						<input type="hidden" name="step" :value="Step === 'Number' ? 'phone' : 'code'">
+						<input type="hidden" name="agree" :value="Agree ? '1' : ''">
 						<button type="submit" ref="HiddenFormSubmitReg">reg</button>
 					</form>
-					<v-form :validation-schema="RegSchema" class="modal-body position-relative d-flex flex-column align-items-center px-5 pb-4" @submit="RegSubmit">
+					{% verbatim %}
+					<v-form :validation-schema="RegSchema" class="d-flex flex-column" @submit="RegSubmit">
+						<div class="modal-body position-relative d-flex flex-column align-items-center px-5 pb-4">
 						<v-field v-if="RegInput !== 'Регистрация успешна'" v-model="RegInput" name="reg" type="text" id="reg" :placeholder="Step === `Number` ? `Введите ваш номер` : `Введите код`" class="form-control cake__textinput"></v-field>
-						<v-field v-if="Step === 'Number'" v-model="RegInput" type="phone" name="phone_format" class="d-none"></v-field>
-						<v-field v-if="Step === 'Code'" v-model="RegInput" type="phone" name="code_format" class="d-none"></v-field>
-						<button v-if="RegInput !== 'Регистрация успешна'" type="submit" class="btn text-white w-100 rounded-pill mt-3 py-2 shadow-none cake__button fs_12 cake__bg_pink">Отправить</button>
-						<span v-if="RegInput === 'Регистрация успешна'" class="cake_grey text-center">Регистрация успешна</span>
-						<small class="fs_12 cake_pink text-center position-absolute bottom-0"><error-message name="reg">
-							<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-exclamation-circle mb-1" viewBox="0 0 16 16">
-								<path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-								<path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/>
-							</svg>
-							{{Step === 'Number' ? 'Введите номер' : 'Введите код'}}</error-message></small>
-						<error-message name="phone_format" class="fs_12 cake_pink text-center position-absolute bottom-0"></error-message>
-						<error-message name="code_format" class="fs_12 cake_pink text-center position-absolute bottom-0"></error-message>
-					</v-form>
-
-					<div class="modal-footer d-flex flex-column justify-content-between align-items-center text-center border-0 mx-5">
-						<p class="fs_12 cake_grey">{{Step === `Number` ? `Нажимая на кнопку, вы соглашаетесь на обработку персональных данных в соответствии с политикой конфиденциальности` : Step === 'Code' ? `Осталось времени: 05:00` : ``}}</p>
-						<a href="#" v-if="Step === `Code`" @click.prevent="ToRegStep1" class="text-decoration-none cake_pink fs_12">изменить данные</a>
+							<v-field v-if="Step === 'Number'" v-model="RegInput" type="phone" name="phone_format" class="d-none"></v-field>
+							<v-field v-if="Step === 'Code'" v-model="RegInput" type="phone" name="code_format" class="d-none"></v-field>
+							<button v-if="RegInput !== 'Регистрация успешна'" type="submit" class="btn text-white w-100 rounded-pill mt-3 py-2 shadow-none cake__button fs_12 cake__bg_pink">Отправить</button>
+							<span v-if="RegInput === 'Регистрация успешна'" class="cake_grey text-center">Регистрация успешна</span>
+							<div class="w-100 text-center mt-2">
+								<small class="fs_12 cake_pink"><error-message name="reg" class="d-block">
+									<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-exclamation-circle mb-1" viewBox="0 0 16 16">
+										<path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+										<path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/>
+									</svg>
+									{{Step === 'Number' ? 'Введите номер' : 'Введите код'}}</error-message></small>
+								<error-message name="phone_format" class="d-block fs_12 cake_pink"></error-message>
+								<error-message name="code_format" class="d-block fs_12 cake_pink"></error-message>
+							</div>
+						</div>
+					{% endverbatim %}
+					<div class="modal-footer d-flex flex-column justify-content-between align-items-center text-center border-0">
+						<a href="#" v-if="Step === 'Code'" @click.prevent="ToRegStep1" class="text-decoration-none cake_pink fs_12">изменить данные</a>
+						<div class="d-flex align-items-start gap-2 mt-3 px-2" v-if="Step === 'Number'">
+							<v-field v-if="Step === 'Number'" v-model="Agree" name="agree" type="checkbox" value="1" id="pdConsent" :rules="{ required: 'Без согласия на обработку персональных данных продолжить нельзя' }" class="form-check-input flex-shrink-0 mt-1"></v-field>
+							<div class="consent__text">
+								<label for="pdConsent" class="fs_12 cake_grey text-start">Согласен(на) на обработку персональных данных</label>
+								<a href="{% static 'privacy/pd.pdf' %}" target="_blank" rel="noopener" class="cake_pink fs_12 d-inline-block mt-1">Политика конфиденциальности (PDF)</a>
+							</div>
+						</div>
+						<div class="consent__text mt-3 px-2" v-else>
+							<span class="fs_12 cake_grey">Согласие на обработку персональных данных уже получено.
+								<a href="{% static 'privacy/pd.pdf' %}" target="_blank" rel="noopener" class="cake_pink fs_12 d-inline">Политика конфиденциальности (PDF)</a>
+							</span>
+						</div>
+						<error-message name="agree" class="fs_12 cake_pink text-center mt-1"></error-message>
 					</div>
+					{% verbatim %}
+					</v-form>
 				</div>
 			</div>
 		</aside>
@@ -437,7 +467,7 @@
 </footer>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 
-<script src="{% static 'index.js' %}"></script>
-<script src="{% static 'registration.js' %}"></script>
+<script src="{% static 'js/index.js' %}"></script>
+<script src="{% static 'js/registration.js' %}"></script>
 </body>
 </html>
