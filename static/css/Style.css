@@ -1,10 +1,10 @@
 @font-face {
     font-family: Gogh;
-    src: url(fonts/Gogh-ExtraBold.otf);
+    src: url(../fonts/Gogh-ExtraBold.otf);
 }
 @font-face {
     font-family: Garet;
-    src: url(fonts/Garet-Book.ttf);
+    src: url(../fonts/Garet-Book.ttf);
 }
 .font_Gogh {
     font-family: Gogh;
@@ -101,9 +101,13 @@ li .cake__textinput:read-only {
 .cake__modal {
     border: none;
     max-width: 593px;
-    height: 310px;
+    min-height: 310px;
     box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
     border-radius: 15px;
+}
+.consent__text {
+    min-width: 0;
+    flex: 1 1 auto;
 }
 .from__alert:not(:last-child):after {
     content: ',';
