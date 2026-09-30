@@ -1,0 +1,209 @@
+[
+{
+  "model": "cakes.level",
+  "pk": 1,
+  "fields": {
+    "name": "1 уровень",
+    "price": 400,
+    "index_value": 1
+  }
+},
+{
+  "model": "cakes.level",
+  "pk": 2,
+  "fields": {
+    "name": "2 уровня",
+    "price": 750,
+    "index_value": 2
+  }
+},
+{
+  "model": "cakes.level",
+  "pk": 3,
+  "fields": {
+    "name": "3 уровня",
+    "price": 1100,
+    "index_value": 3
+  }
+},
+{
+  "model": "cakes.form",
+  "pk": 1,
+  "fields": {
+    "name": "Круг",
+    "price": 600,
+    "index_value": 1
+  }
+},
+{
+  "model": "cakes.form",
+  "pk": 2,
+  "fields": {
+    "name": "Квадрат",
+    "price": 400,
+    "index_value": 2
+  }
+},
+{
+  "model": "cakes.form",
+  "pk": 3,
+  "fields": {
+    "name": "Прямоугольник",
+    "price": 1000,
+    "index_value": 3
+  }
+},
+{
+  "model": "cakes.topping",
+  "pk": 1,
+  "fields": {
+    "name": "Без",
+    "price": 0,
+    "index_value": 1
+  }
+},
+{
+  "model": "cakes.topping",
+  "pk": 2,
+  "fields": {
+    "name": "Белый соус",
+    "price": 200,
+    "index_value": 2
+  }
+},
+{
+  "model": "cakes.topping",
+  "pk": 3,
+  "fields": {
+    "name": "Карамельный",
+    "price": 180,
+    "index_value": 3
+  }
+},
+{
+  "model": "cakes.topping",
+  "pk": 4,
+  "fields": {
+    "name": "Кленовый",
+    "price": 200,
+    "index_value": 4
+  }
+},
+{
+  "model": "cakes.topping",
+  "pk": 5,
+  "fields": {
+    "name": "Черничный",
+    "price": 300,
+    "index_value": 5
+  }
+},
+{
+  "model": "cakes.topping",
+  "pk": 6,
+  "fields": {
+    "name": "Молочный шоколад",
+    "price": 350,
+    "index_value": 6
+  }
+},
+{
+  "model": "cakes.topping",
+  "pk": 7,
+  "fields": {
+    "name": "Клубничный",
+    "price": 200,
+    "index_value": 7
+  }
+},
+{
+  "model": "cakes.berries",
+  "pk": 1,
+  "fields": {
+    "name": "Ежевика",
+    "price": 400,
+    "index_value": 1
+  }
+},
+{
+  "model": "cakes.berries",
+  "pk": 2,
+  "fields": {
+    "name": "Малина",
+    "price": 300,
+    "index_value": 2
+  }
+},
+{
+  "model": "cakes.berries",
+  "pk": 3,
+  "fields": {
+    "name": "Голубика",
+    "price": 450,
+    "index_value": 3
+  }
+},
+{
+  "model": "cakes.berries",
+  "pk": 4,
+  "fields": {
+    "name": "Клубника",
+    "price": 500,
+    "index_value": 4
+  }
+},
+{
+  "model": "cakes.decor",
+  "pk": 1,
+  "fields": {
+    "name": "Фисташки",
+    "price": 300,
+    "index_value": 1
+  }
+},
+{
+  "model": "cakes.decor",
+  "pk": 2,
+  "fields": {
+    "name": "Безе",
+    "price": 400,
+    "index_value": 2
+  }
+},
+{
+  "model": "cakes.decor",
+  "pk": 3,
+  "fields": {
+    "name": "Фундук",
+    "price": 350,
+    "index_value": 3
+  }
+},
+{
+  "model": "cakes.decor",
+  "pk": 4,
+  "fields": {
+    "name": "Пекан",
+    "price": 300,
+    "index_value": 4
+  }
+},
+{
+  "model": "cakes.decor",
+  "pk": 5,
+  "fields": {
+    "name": "Маршмеллоу",
+    "price": 200,
+    "index_value": 5
+  }
+},
+{
+  "model": "cakes.decor",
+  "pk": 6,
+  "fields": {
+    "name": "Марципан",
+    "price": 280,
+    "index_value": 6
+  }
+}
+]
