@@ -86,7 +86,7 @@ def reg(request):
     if not form.is_valid():
         return _fail(request, "phone-error", form)
 
-    phone = form.cleaned_data["phone"]
+    phone = str(form.cleaned_data["phone"])
     code = f"{secrets.randbelow(9000) + 1000:04d}"
     request.session["reg_phone"] = phone
     request.session["reg_code"] = code

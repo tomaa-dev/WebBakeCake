@@ -10,6 +10,7 @@ the session, so old consents stay attributable to the text they covered.
 import re
 
 from django import forms
+from phonenumber_field.formfields import PhoneNumberField
 
 from .models import User
 
@@ -17,9 +18,10 @@ CONSENT_VERSION = "1.0"
 
 
 class PhoneForm(forms.Form):
-    phone = forms.CharField(
+    phone = PhoneNumberField(
         label="Номер телефона",
-        max_length=20,
+        region="RU",
+        error_messages={"invalid": "Введите корректный российский номер телефона"},
         widget=forms.TextInput(attrs={"placeholder": "+7 999 123-45-67"}),
     )
     agree = forms.BooleanField(
@@ -28,13 +30,10 @@ class PhoneForm(forms.Form):
     )
 
     def clean_phone(self):
-        phone = "".join(ch for ch in self.cleaned_data["phone"] if ch.isdigit())
-        if len(phone) not in (10, 11):
-            raise forms.ValidationError("Введите номер полностью, например +7 999 123-45-67")
+        phone = self.cleaned_data["phone"]
+        if phone.country_code != 7:
+            raise forms.ValidationError("Сайт принимает только российские номера, например +7 999 123-45-67")
         return phone
-
-    def clean_agree(self):
-        return True
 
 
 class CodeForm(forms.Form):
