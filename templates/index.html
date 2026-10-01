@@ -303,7 +303,9 @@
 			</section>
 
 			<section class="row pt-header" id="step4" v-if="Designed">
-				<form class="d-none">
+				{% endverbatim %}
+				<form class="d-none" method="post" action="{% url 'cakes:order' %}">{% csrf_token %}
+				{% verbatim %}
 					<input v-model="Levels" value="1" type="radio" name="LEVELS">
 					<input v-model="Levels" value="2" type="radio" name="LEVELS">
 					<input v-model="Levels" value="3" type="radio" name="LEVELS">

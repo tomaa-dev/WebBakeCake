@@ -1,17 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-
-from .models import (
-    AdLink,
-    Berries,
-    Decor,
-    Form,
-    Level,
-    Order,
-    PromoCode,
-    Topping,
-    User,
-)
+from .models import AdLink, Berries, Cake, CakeForm, Decor, Level, Order, Topping, User
+from django.conf import settings
 
 
 @admin.register(User)
@@ -57,7 +47,13 @@ class LevelAdmin(admin.ModelAdmin):
     ordering = ("index_value",)
 
 
-@admin.register(Form)
+@admin.register(Cake)
+class CakeAdmin(admin.ModelAdmin):
+    list_display = ("name", "price")
+    list_editable = ("price",)
+
+
+@admin.register(CakeForm)
 class FormAdmin(admin.ModelAdmin):
     list_display = ("name", "price", "index_value")
     list_editable = ("price", "index_value")
@@ -87,16 +83,8 @@ class DecorAdmin(admin.ModelAdmin):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = (
-        "id",
-        "client_name",
-        "phone_number",
-        "delivery_date",
-        "price",
-        "user",
-        "created_at",
-    )
-    list_filter = ("delivery_date", "created_at", "user")
+    list_display = ("id", "client_name", "phone_number", "delivery_date", "price", "user", "created_at", "status", "utm")
+    list_filter = ("delivery_date", "created_at", "user", "status", "utm")
     search_fields = ("client_name", "phone_number", "email", "address")
     readonly_fields = ("created_at",)
     ordering = ("-created_at",)
@@ -125,7 +113,8 @@ class OrderAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "level",
-                    "form",
+                    "cake_form",
+                    "cake",
                     "topping",
                     "berry",
                     "decor",
@@ -137,7 +126,7 @@ class OrderAdmin(admin.ModelAdmin):
         (
             "Итог",
             {
-                "fields": ("price", "created_at"),
+                "fields": ("price", "created_at", "status", "utm"),
             },
         ),
     )
@@ -145,20 +134,12 @@ class OrderAdmin(admin.ModelAdmin):
 
 @admin.register(AdLink)
 class AdLinkAdmin(admin.ModelAdmin):
-    list_display = ("name", "tag", "short_url", "visits")
+    list_display = ("name", "tag", "visits", "ad_url")
     search_fields = ("name", "tag")
+    readonly_fields = ("visits", "ad_url")
 
-
-@admin.register(PromoCode)
-class PromoCodeAdmin(admin.ModelAdmin):
-    list_display = (
-        "code",
-        "discount_percent",
-        "valid_from",
-        "valid_until",
-        "is_active",
-        "used_count",
-        "max_uses",
-    )
-    list_filter = ("is_active",)
-    search_fields = ("code",)
+    @admin.display(description="Ссылка для рекламы")
+    def ad_url(self, obj):
+        if not obj.tag:
+            return "--"
+        return f"{settings.WEB_URL}/?start={obj.tag}"
