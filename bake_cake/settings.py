@@ -1,9 +1,8 @@
 import os
 from pathlib import Path
 
-from environs import Env
 from django.contrib import messages
-
+from environs import Env
 
 env = Env()
 env.read_env()
@@ -11,7 +10,7 @@ env.read_env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-#TODO не забыть обновить env.example в конце
+# TODO не забыть обновить env.example в конце
 
 SECRET_KEY = env("SECRET_KEY")
 DEBUG = env.bool("DEBUG", True)

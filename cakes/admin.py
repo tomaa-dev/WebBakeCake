@@ -1,7 +1,8 @@
+from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
+
 from .models import AdLink, Berries, Cake, CakeForm, Decor, Level, Order, Topping, User
-from django.conf import settings
 
 
 @admin.register(User)
@@ -83,7 +84,17 @@ class DecorAdmin(admin.ModelAdmin):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ("id", "client_name", "phone_number", "delivery_date", "price", "user", "created_at", "status", "utm")
+    list_display = (
+        "id",
+        "client_name",
+        "phone_number",
+        "delivery_date",
+        "price",
+        "user",
+        "created_at",
+        "status",
+        "utm",
+    )
     list_filter = ("delivery_date", "created_at", "user", "status", "utm")
     search_fields = ("client_name", "phone_number", "email", "address")
     readonly_fields = ("created_at",)

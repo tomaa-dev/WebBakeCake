@@ -3,12 +3,13 @@ import secrets
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+from django.db.models import F
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
-from django.db.models import F
-from .forms import CONSENT_VERSION, CodeForm, PhoneForm, ProfileForm, get_or_create_user, OrderForm
-from .models import Order, AdLink
+
+from .forms import CONSENT_VERSION, CodeForm, OrderForm, PhoneForm, ProfileForm, get_or_create_user
+from .models import AdLink, Order
 
 
 def index(request):
@@ -16,7 +17,7 @@ def index(request):
     if tag and request.session.get("utm") != tag:
         updated = AdLink.objects.filter(tag=tag).update(visits=F("visits") + 1)
         if updated:
-            request.session["utm"] = tag #подсчёт кликов
+            request.session["utm"] = tag  # подсчёт кликов
 
     reg = request.GET.get("reg", "")
     step = {"code": "Code", "code-error": "Code", "phone-error": "Number"}.get(reg, "Number")
@@ -112,7 +113,8 @@ def logout(request):
     return redirect("/")
 
 
-#Принятие заказа
+# Принятие заказа
+
 
 @require_POST
 def order(request):
@@ -144,4 +146,4 @@ def order(request):
     order.save()
 
     messages.success(request, "Заказ принят!")
-    return redirect("cakes:index") #создадим список заказа - редирект лучше туда наверное сделать
+    return redirect("cakes:index")  # создадим список заказа - редирект лучше туда наверное сделать

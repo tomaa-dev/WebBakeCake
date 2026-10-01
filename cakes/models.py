@@ -1,13 +1,15 @@
+from datetime import datetime, timedelta
+
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from phonenumber_field.modelfields import PhoneNumberField
-from datetime import datetime, timedelta
 from django.utils import timezone
+from phonenumber_field.modelfields import PhoneNumberField
 
 INSCRIPTION_PRICE = 500
 URGENT_HOURS = 24
 URGENT_PERCENT_PRICE_INCREASE = 20
+
 
 class User(AbstractUser):
     username = PhoneNumberField("Номер телефона", max_length=20, region="RU", unique=True)
@@ -152,8 +154,6 @@ class Order(models.Model):
         if self.is_urgent():
             price += price * URGENT_PERCENT_PRICE_INCREASE // 100
         self.price = price
-
-
 
 
 # ниже просто взял со self_storage, если что уберём

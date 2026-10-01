@@ -8,12 +8,13 @@ the session, so old consents stay attributable to the text they covered.
 """
 
 import re
+from datetime import datetime
 
 from django import forms
-from phonenumber_field.formfields import PhoneNumberField
-from .models import User, Berries, CakeForm, Decor, Level, Topping
 from django.utils import timezone
-from datetime import datetime
+from phonenumber_field.formfields import PhoneNumberField
+
+from .models import Berries, CakeForm, Decor, Level, Topping, User
 
 CONSENT_VERSION = "1.0"
 
@@ -37,6 +38,7 @@ class PhoneForm(forms.Form):
 
     def clean_agree(self):
         return True
+
 
 class OrderForm(forms.Form):
     LEVELS = forms.ModelChoiceField(Level.objects.all(), to_field_name="index_value", required=False)
