@@ -1,19 +1,40 @@
+from datetime import datetime, timedelta
+
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
+from phonenumber_field.modelfields import PhoneNumberField
+
+INSCRIPTION_PRICE = 500
+URGENT_HOURS = 24
+URGENT_PERCENT_PRICE_INCREASE = 20
 
 
 class User(AbstractUser):
-    username = models.CharField("Номер телефона", max_length=20, unique=True)
+    username = PhoneNumberField("Номер телефона", max_length=20, region="RU", unique=True)
     first_name = models.CharField("Имя", max_length=100, blank=True)
     email = models.EmailField("Почта", max_length=50, blank=True)
+    pd_consent_at = models.DateTimeField("Согласие на обработку ПД", null=True, blank=True)
 
     class Meta:
         verbose_name = "пользователь"
         verbose_name_plural = "пользователи"
 
     def __str__(self):
-        return self.username
+        return str(self.username)
+
+
+class Cake(models.Model):
+    name = models.CharField("Название", max_length=50)
+    price = models.PositiveIntegerField("Цена", default=0)
+
+    class Meta:
+        verbose_name = "готовый торт"
+        verbose_name_plural = "готовые торты"
+
+    def __str__(self):
+        return self.name
 
 
 class CakeOption(models.Model):
@@ -35,7 +56,7 @@ class Level(CakeOption):
         verbose_name_plural = "количества уровней"
 
 
-class Form(CakeOption):
+class CakeForm(CakeOption):
     class Meta(CakeOption.Meta):
         verbose_name = "форма"
         verbose_name_plural = "формы"
@@ -60,12 +81,30 @@ class Decor(CakeOption):
 
 
 class Order(models.Model):
+    class Status(models.TextChoices):
+        CREATED = "CREATED", "Не обработан"
+        PREPARING = "PREPARING", "Готовится"
+        DELIVERING = "DELIVERING", "У курьера"
+        COMPLETED = "COMPLETED", "Доставлен"
+        CANCELLED = "CANCELLED", "Отменён"
+
+    status = models.CharField(
+        "статус",
+        max_length=15,
+        choices=Status.choices,
+        default=Status.CREATED,
+        db_index=True,
+    )
+
+    FINISHED_STATUSES = [Status.COMPLETED, Status.CANCELLED]
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name="Покупатель", on_delete=models.SET_NULL, null=True, blank=True
     )
+    utm = models.CharField("Рекламная метка", max_length=50, blank=True)
 
     client_name = models.CharField("Имя клиента", max_length=50)
-    phone_number = models.CharField("Номер телефона", max_length=20)
+    phone_number = PhoneNumberField("Номер телефона", max_length=20, region="RU", db_index=True)
     email = models.EmailField("Почта", max_length=50)
 
     address = models.CharField("Адрес", max_length=100)
@@ -74,9 +113,13 @@ class Order(models.Model):
 
     delivery_comment = models.TextField("Комментарий курьеру", blank=True)
 
-    level = models.ForeignKey(Level, verbose_name="Уровни", on_delete=models.PROTECT)
-    form = models.ForeignKey(Form, verbose_name="Форма", on_delete=models.PROTECT)
-    topping = models.ForeignKey(Topping, verbose_name="Топпинг", on_delete=models.PROTECT)
+    cake = models.ForeignKey(Cake, verbose_name="Готовый торт", on_delete=models.PROTECT, null=True, blank=True)
+
+    level = models.ForeignKey(
+        Level, verbose_name="Уровни", on_delete=models.PROTECT, null=True, blank=True
+    )  # null=true потому что теперь есть готовые торты
+    cake_form = models.ForeignKey(CakeForm, verbose_name="Форма", on_delete=models.PROTECT, null=True, blank=True)
+    topping = models.ForeignKey(Topping, verbose_name="Топпинг", on_delete=models.PROTECT, null=True, blank=True)
     berry = models.ForeignKey(
         Berries, verbose_name="Ягоды", on_delete=models.PROTECT, null=True, blank=True
     )  # там в хтмльках нет возможность "отжать" кнопку, поправит надо бы
@@ -96,6 +139,22 @@ class Order(models.Model):
     def __str__(self):
         return f"Заказ от {self.created_at}"
 
+    def is_urgent(self):
+        delivery_at = timezone.make_aware(datetime.combine(self.delivery_date, self.delivery_time))
+        return delivery_at - timezone.now() < timedelta(hours=URGENT_HOURS)
+
+    def set_price(self):
+        if self.cake:
+            price = self.cake.price
+        else:
+            options = (self.level, self.cake_form, self.topping, self.berry, self.decor)
+            price = sum(option.price for option in options if option)
+            if self.inscription:
+                price += INSCRIPTION_PRICE
+        if self.is_urgent():
+            price += price * URGENT_PERCENT_PRICE_INCREASE // 100
+        self.price = price
+
 
 # ниже просто взял со self_storage, если что уберём
 
@@ -103,21 +162,7 @@ class Order(models.Model):
 class AdLink(models.Model):
     name = models.CharField("Название целевого сервиса", max_length=50)
     tag = models.CharField("Тег", max_length=10, unique=True)
-    short_url = models.URLField("Короткая ссылка", blank=True)
     visits = models.PositiveIntegerField("Переходы", default=0)
 
     def __str__(self):
         return f"{self.name} ({self.tag})"
-
-
-class PromoCode(models.Model):
-    code = models.CharField("Промокод", max_length=50, unique=True)
-    discount_percent = models.PositiveIntegerField("Скидка %")
-    valid_from = models.DateTimeField("Действует с")
-    valid_until = models.DateTimeField("Действует до")
-    is_active = models.BooleanField("Активен", default=True)
-    max_uses = models.PositiveIntegerField("Максимум использований", default=1)
-    used_count = models.PositiveIntegerField("Количество использований", default=0)
-
-    def __str__(self):
-        return f"{self.code} – {self.discount_percent}%"

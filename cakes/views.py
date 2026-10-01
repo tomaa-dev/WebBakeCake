@@ -3,13 +3,22 @@ import secrets
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+from django.db.models import F
 from django.shortcuts import redirect, render
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
-from .forms import CONSENT_VERSION, CodeForm, PhoneForm, ProfileForm, get_or_create_user
+from .forms import CONSENT_VERSION, CodeForm, OrderForm, PhoneForm, ProfileForm, get_or_create_user
+from .models import AdLink, Order
 
 
 def index(request):
+    tag = request.GET.get("start")
+    if tag and request.session.get("utm") != tag:
+        updated = AdLink.objects.filter(tag=tag).update(visits=F("visits") + 1)
+        if updated:
+            request.session["utm"] = tag  # подсчёт кликов
+
     reg = request.GET.get("reg", "")
     step = {"code": "Code", "code-error": "Code", "phone-error": "Number"}.get(reg, "Number")
     phone = request.session.get("reg_phone", "") if reg else ""
@@ -102,3 +111,39 @@ def reg(request):
 def logout(request):
     request.session.flush()
     return redirect("/")
+
+
+# Принятие заказа
+
+
+@require_POST
+def order(request):
+    form = OrderForm(request.POST)
+    if not form.is_valid():
+        for errors in form.errors.values():
+            messages.error(request, " ".join(errors))
+        return redirect("cakes:index")
+    data = form.cleaned_data
+    order = Order(
+        user=request.user if request.user.is_authenticated else None,
+        utm=request.session.get("utm", ""),
+        client_name=data["NAME"],
+        phone_number=data["PHONE"],
+        email=data["EMAIL"],
+        address=data["ADDRESS"],
+        delivery_date=data["DATE"],
+        delivery_time=data["TIME"],
+        delivery_comment=data["DELIVCOMMENTS"],
+        level=data["LEVELS"],
+        cake_form=data["FORM"],
+        topping=data["TOPPING"],
+        berry=data["BERRIES"],
+        decor=data["DECOR"],
+        inscription=data["WORDS"],
+        cake_comment=data["COMMENTS"],
+    )
+    order.set_price()
+    order.save()
+
+    messages.success(request, "Заказ принят!")
+    return redirect("cakes:index")  # создадим список заказа - редирект лучше туда наверное сделать

@@ -8,11 +8,13 @@ the session, so old consents stay attributable to the text they covered.
 """
 
 import re
+from datetime import datetime
 
 from django import forms
+from django.utils import timezone
 from phonenumber_field.formfields import PhoneNumberField
 
-from .models import User
+from .models import Berries, CakeForm, Decor, Level, Topping, User
 
 CONSENT_VERSION = "1.0"
 
@@ -34,6 +36,40 @@ class PhoneForm(forms.Form):
         if phone.country_code != 7:
             raise forms.ValidationError("Сайт принимает только российские номера, например +7 999 123-45-67")
         return phone
+
+
+class OrderForm(forms.Form):
+    LEVELS = forms.ModelChoiceField(Level.objects.all(), to_field_name="index_value", required=False)
+    DECOR = forms.ModelChoiceField(Decor.objects.all(), to_field_name="index_value", required=False)
+    BERRIES = forms.ModelChoiceField(Berries.objects.all(), to_field_name="index_value", required=False)
+    TOPPING = forms.ModelChoiceField(Topping.objects.all(), to_field_name="index_value", required=False)
+    FORM = forms.ModelChoiceField(CakeForm.objects.all(), to_field_name="index_value", required=False)
+    WORDS = forms.CharField(required=False, max_length=50)
+    COMMENTS = forms.CharField(required=False)
+
+    NAME = forms.CharField(max_length=50)
+    DATE = forms.DateField()
+    TIME = forms.TimeField()
+    ADDRESS = forms.CharField(max_length=100)
+    EMAIL = forms.EmailField(max_length=50)
+    PHONE = PhoneNumberField(region="RU")
+    DELIVCOMMENTS = forms.CharField(required=False)
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        date = cleaned_data.get("DATE")
+        time = cleaned_data.get("TIME")
+        if date and time:
+            delivery_at = timezone.make_aware(datetime.combine(date, time))
+            if delivery_at < timezone.now():
+                self.add_error("DATE", "Введите корректную дату доставки!")
+
+        constructor = (cleaned_data.get("LEVELS"), cleaned_data.get("FORM"), cleaned_data.get("TOPPING"))
+        if not all(constructor):
+            raise forms.ValidationError("Выберите все необходимые опции!")
+
+        return cleaned_data
 
 
 class CodeForm(forms.Form):
