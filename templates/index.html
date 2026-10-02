@@ -151,32 +151,20 @@
 		</article>
 
 		<article class="row pt-header d-flex justify-content-center" id="step2">
-			<h2 class="font_Gogh fs_40 cake_blue text-center mb-3">По любому поводу</h2>
+			<h2 class="font_Gogh fs_40 cake_blue text-center mb-3">Готовые торты</h2>
 
+			{% for cake in cakes %}
 			<div class="col-12 col-sm-6 col-lg-4 d-flex flex-column align-items-center">
-				<div class="card border-0 cake__hover">
-					<a href="#" class="card-img-overlay"></a>
-					<img src="{% static 'img/image1.png' %}" alt="" class="">
-					<span class="cake_blue mt-4 fw-lighter mb-4 text-center">На чаепитие</span>
+				<div class="card border-0 cake__hover w-100">
+					<img src="{{ cake.image.url }}" alt="{{ cake.name }}" class="">
+					<span class="cake_blue mt-4 fw-lighter mb-2 text-center">{{ cake.name }}</span>
+					<span class="cake_grey fw-lighter mb-4 text-center">{{ cake.price }} руб.</span>
+					<div class="d-flex justify-content-center mb-4">
+						<a href="#step4" class="btn text-white rounded-pill shadow-none cake__button cake__bg_pink">Купить</a>
+					</div>
 				</div>
 			</div>
-			<div class="col-12 col-sm-6 col-lg-4 d-flex flex-column align-items-center">
-				<div class="card border-0 cake__hover">
-					<a href="#" class="card-img-overlay"></a>
-					<img src="{% static 'img/image2.png' %}" alt="" class="">
-					<span class="cake_blue mt-4 fw-lighter mb-4 text-center">На день рождения</span>
-				</div>
-			</div>
-			<div class="col-12 col-sm-6 col-lg-4 d-flex flex-column align-items-center">
-				<div class="card border-0 cake__hover">
-					<a href="#" class="card-img-overlay"></a>
-					<img src="{% static 'img/image3.png' %}" alt="" class="">
-					<span class="cake_blue mt-4 fw-lighter mb-4 text-center">На свадьбу</span>
-				</div>
-			</div>
-			<div class="d-flex justify-content-center mt-2">
-				<button class="btn text-white rounded-pill shadow-none cake__button cake__bg_pink">Открыть каталог</button>
-			</div>
+			{% endfor %}
 		</article>
 
 		<article class="row pt-header text-center d-flex justify-content-center">
@@ -449,9 +437,7 @@
 				</div>
 			</div>
 			<div class="col-4 col-xl-2 d-flex flex-column">
-				<a href="#" class="text-decoration-none text-white">На свадьбу</a>
-				<a href="#" class="text-decoration-none text-white">На день рождения</a>
-				<a href="#" class="text-decoration-none text-white">На чаепитие</a>
+				<a href="#step2" class="text-decoration-none text-white">Готовые торты</a>
 			</div>
 			<div class="col-4 col-xl-2 d-flex flex-column">
 				<a href="#step3" class="text-decoration-none text-white">Создать торт</a>

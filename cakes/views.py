@@ -9,7 +9,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from .forms import CONSENT_VERSION, CodeForm, OrderForm, PhoneForm, ProfileForm, get_or_create_user
-from .models import AdLink, Order
+from .models import AdLink, Cake, Order
 
 
 def index(request):
@@ -22,7 +22,8 @@ def index(request):
     reg = request.GET.get("reg", "")
     step = {"code": "Code", "code-error": "Code", "phone-error": "Number"}.get(reg, "Number")
     phone = request.session.get("reg_phone", "") if reg else ""
-    return render(request, "index.html", {"reg_step": step, "reg_open": reg != "", "reg_phone": phone})
+    context = {"reg_step": step, "reg_open": reg != "", "reg_phone": phone, "cakes": Cake.objects.all()}
+    return render(request, "index.html", context)
 
 
 @login_required
