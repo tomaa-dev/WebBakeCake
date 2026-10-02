@@ -14,7 +14,7 @@ from django import forms
 from django.utils import timezone
 from phonenumber_field.formfields import PhoneNumberField
 
-from .models import Berries, CakeForm, Decor, Level, Topping, User
+from .models import Berries, Cake, CakeForm, Decor, Level, Topping, User
 
 CONSENT_VERSION = "1.0"
 
@@ -46,6 +46,7 @@ class OrderForm(forms.Form):
     FORM = forms.ModelChoiceField(CakeForm.objects.all(), to_field_name="index_value", required=False)
     WORDS = forms.CharField(required=False, max_length=50)
     COMMENTS = forms.CharField(required=False)
+    CAKE = forms.ModelChoiceField(Cake.objects.all(), required=False)
 
     NAME = forms.CharField(max_length=50)
     DATE = forms.DateField()
@@ -66,6 +67,8 @@ class OrderForm(forms.Form):
                 self.add_error("DATE", "Введите корректную дату доставки!")
 
         constructor = (cleaned_data.get("LEVELS"), cleaned_data.get("FORM"), cleaned_data.get("TOPPING"))
+        if cleaned_data.get("CAKE"):
+            cleaned_data["WORDS"] = ""
         if not all(constructor):
             raise forms.ValidationError("Выберите все необходимые опции!")
 
