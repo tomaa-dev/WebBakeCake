@@ -1,4 +1,5 @@
 import secrets
+from datetime import datetime
 
 from django.contrib import messages
 from django.contrib.auth import login
@@ -32,6 +33,7 @@ def lk(request):
         "name": request.user.first_name,
         "email": request.user.email,
         "edit": request.GET.get("edit") == "1",
+        "orders": request.user.order_set.all(),
     }
     return render(request, "lk.html", context)
 
@@ -43,7 +45,14 @@ def lk_profile(request):
         for error in form.errors.values():
             messages.error(request, "; ".join(error))
         return render(
-            request, "lk.html", {"name": form.data.get("name", ""), "email": form.data.get("email", ""), "edit": True}
+            request,
+            "lk.html",
+            {
+                "name": form.data.get("name", ""),
+                "email": form.data.get("email", ""),
+                "edit": True,
+                "orders": request.user.order_set.all(),
+            },
         )
     request.user.first_name = form.cleaned_data["name"]
     request.user.email = form.cleaned_data["email"]
@@ -64,6 +73,7 @@ def _fail(request, flag, form=None):
     return redirect(f"/?reg={flag}")
 
 
+@require_POST
 def reg(request):
     step = request.POST.get("step", "phone")
 
@@ -87,7 +97,12 @@ def reg(request):
             return _fail(request, "phone-error")
 
         user, _ = get_or_create_user(phone)
-        request.session["pd_consent"] = consent
+        if user.pd_consent_at is None:
+            user.pd_consent_at = datetime.fromisoformat(consent["at"])
+            user.save(update_fields=["pd_consent_at"])  # запись о согласии
+        request.session["pd_consent"] = (
+            consent  # TODO на строку завязан один из лишних тестов. После чистки стоит убрать
+        )
         login(request, user)
         messages.success(request, f"Готово, вы зарегистрированы как {phone}")
         return redirect("/")
@@ -142,6 +157,7 @@ def order(request):
         decor=data["DECOR"],
         inscription=data["WORDS"],
         cake_comment=data["COMMENTS"],
+        cake=data["CAKE"],
     )
     order.set_price()
     order.save()
