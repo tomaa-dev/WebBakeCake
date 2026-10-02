@@ -1,0 +1,56 @@
+[
+  {
+    "model": "cakes.cake",
+    "pk": 1,
+    "fields": {
+      "name": "Медовик",
+      "price": 2000,
+      "image": "cakes/cake-1.png"
+    }
+  },
+  {
+    "model": "cakes.cake",
+    "pk": 2,
+    "fields": {
+      "name": "Наполеон",
+      "price": 2100,
+      "image": "cakes/cake-2.png"
+    }
+  },
+  {
+    "model": "cakes.cake",
+    "pk": 3,
+    "fields": {
+      "name": "Шоколадный",
+      "price": 2300,
+      "image": "cakes/cake-3.png"
+    }
+  },
+  {
+    "model": "cakes.cake",
+    "pk": 4,
+    "fields": {
+      "name": "Клубника со сливками",
+      "price": 2400,
+      "image": "cakes/cake-4.png"
+    }
+  },
+  {
+    "model": "cakes.cake",
+    "pk": 5,
+    "fields": {
+      "name": "Тирамису",
+      "price": 2500,
+      "image": "cakes/cake-5.png"
+    }
+  },
+  {
+    "model": "cakes.cake",
+    "pk": 6,
+    "fields": {
+      "name": "Чизкейк",
+      "price": 2200,
+      "image": "cakes/cake-6.png"
+    }
+  }
+]

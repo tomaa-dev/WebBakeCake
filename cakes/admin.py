@@ -50,7 +50,7 @@ class LevelAdmin(admin.ModelAdmin):
 
 @admin.register(Cake)
 class CakeAdmin(admin.ModelAdmin):
-    list_display = ("name", "price")
+    list_display = ("name", "price", "image")
     list_editable = ("price",)
 
 

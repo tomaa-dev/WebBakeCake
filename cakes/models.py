@@ -28,6 +28,7 @@ class User(AbstractUser):
 class Cake(models.Model):
     name = models.CharField("Название", max_length=50)
     price = models.PositiveIntegerField("Цена", default=0)
+    image = models.ImageField("Фото", upload_to="cakes/", blank=True)
 
     class Meta:
         verbose_name = "готовый торт"
