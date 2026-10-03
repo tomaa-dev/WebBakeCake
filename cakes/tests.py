@@ -128,30 +128,6 @@ class IndexTemplateTests(TestCase):
                 self.assertIn('data-init-open="true"', body)
 
 
-class HeaderAfterRegistrationTests(TestCase):
-    def _register(self):
-        self.client.post("/reg/", {"step": "phone", "phone": "8 999 123-45-67", "agree": "1"})
-        code = self.client.session["reg_code"]
-        return self.client.post("/reg/", {"step": "code", "code": code})
-
-    def test_icon_opens_modal_for_anonymous_visitor(self):
-        body = self.client.get("/").content.decode()
-        self.assertIn('data-bs-toggle="modal"', body)
-        self.assertNotIn("+79991234567", body)
-
-    def test_phone_replaces_icon_after_registration(self):
-        self._register()
-        body = self.client.get("/").content.decode()
-        self.assertIn("+79991234567", body)
-        self.assertNotIn('data-bs-toggle="modal"', body)
-
-    def test_logout_restores_the_icon(self):
-        self._register()
-        self.client.get("/logout/")
-        body = self.client.get("/").content.decode()
-        self.assertIn('data-bs-toggle="modal"', body)
-
-
 class PersonalCabinetTests(TestCase):
     def _register(self):
         self.client.post("/reg/", {"step": "phone", "phone": "8 999 123-45-67", "agree": "1"})
@@ -342,3 +318,49 @@ class OrderHistoryTests(TestCase):
         self._order(cake=Cake.objects.create(name="Второй", price=200))
         body = self.client.get("/lk/").content.decode()
         self.assertLess(body.index("Второй"), body.index("Первый"))
+
+
+class OrderRegistrationTests(TestCase):
+    def setUp(self):
+        self.cake = Cake.objects.create(name="Медовик", price=2000)
+        self.cake.image = "Cake.png"
+        self.cake.save()
+        self.data = {
+            "CAKE": self.cake.pk,
+            "NAME": "Анна",
+            "PHONE": "+7 999 123-45-67",
+            "EMAIL": "anna@example.com",
+            "ADDRESS": "ул. Тестовая 1",
+            "DATE": date.today() + timedelta(days=5),
+            "TIME": "12:00",
+        }
+
+    def _register(self):
+        self.client.post("/reg/", {"step": "phone", "phone": "8 999 123-45-67", "agree": "1"})
+        self.client.post("/reg/", {"step": "code", "code": self.client.session["reg_code"]})
+
+    def test_anonymous_cannot_place_an_order(self):
+        resp = self.client.post("/order/", self.data)
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(Order.objects.count(), 0)
+
+    def test_anonymous_is_sent_to_registration(self):
+        resp = self.client.post("/order/", self.data)
+        self.assertIn("reg=Number", resp["Location"])
+
+    def test_registered_user_places_an_order(self):
+        self._register()
+        self.client.post("/order/", self.data)
+        order = Order.objects.get()
+        self.assertEqual(order.user.username, "+79991234567")
+
+    def test_page_warns_before_registration(self):
+        body = self.client.get("/").content.decode()
+        self.assertIn("Для оформления заказа необходимо зарегистрироваться", body)
+        self.assertEqual(body.count("alert alert-danger"), 2)
+        self.assertIn('id="auth-data" type="application/json">false<', body)
+
+    def test_auth_flag_is_true_for_a_user(self):
+        self._register()
+        body = self.client.get("/").content.decode()
+        self.assertIn('id="auth-data" type="application/json">true<', body)

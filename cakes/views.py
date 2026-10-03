@@ -136,6 +136,7 @@ def logout(request):
 # Принятие заказа
 
 
+@login_required
 @require_POST
 def order(request):
     form = OrderForm(request.POST)
@@ -145,7 +146,7 @@ def order(request):
         return redirect("cakes:index")
     data = form.cleaned_data
     order = Order(
-        user=request.user if request.user.is_authenticated else None,
+        user=request.user,
         utm=request.session.get("utm", ""),
         client_name=data["NAME"],
         phone_number=data["PHONE"],
