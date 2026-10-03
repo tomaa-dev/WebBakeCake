@@ -32,7 +32,7 @@
 					<a class="nav-link fw-lighter cake_blue" href="#step2">Каталог</a>
 				</li>
 				<li class="nav-item me-5">
-					<a class="nav-link fw-lighter cake_blue" href="#step4">Оплата и доставка</a>
+					<a class="nav-link fw-lighter cake_blue" href="#pay">Оплата и доставка</a>
 				</li>
 				<li class="nav-item me-5">
 					<a class="nav-link fw-lighter cake_blue" href="#Contacts">Контакты</a>
@@ -150,24 +150,7 @@
 			</div>
 		</article>
 
-		<article class="row pt-header d-flex justify-content-center" id="step2">
-			<h2 class="font_Gogh fs_40 cake_blue text-center mb-3">Готовые торты</h2>
-
-			{% for cake in cakes %}
-			<div class="col-12 col-sm-6 col-lg-4 d-flex flex-column align-items-center">
-				<div class="card border-0 cake__hover w-100">
-					<img src="{{ cake.image.url }}" alt="{{ cake.name }}" class="">
-					<span class="cake_blue mt-4 fw-lighter mb-2 text-center">{{ cake.name }}</span>
-					<span class="cake_grey fw-lighter mb-4 text-center">{{ cake.price }} руб.</span>
-					<div class="d-flex justify-content-center mb-4">
-						<a href="#step4" class="btn text-white rounded-pill shadow-none cake__button cake__bg_pink">Купить</a>
-					</div>
-				</div>
-			</div>
-			{% endfor %}
-		</article>
-
-		<article class="row pt-header text-center d-flex justify-content-center">
+		<article class="row pt-header text-center d-flex justify-content-center" id="pay">
 			<h2 class="font_Gogh fs_40 cake_blue text-center mb-5">Оплата и доставка</h2>
 			<div class="col-12 col-sm-6 col-lg-4 d-flex flex-column align-items-center">
 				<div class="d-flex align-items-center" style="height: 120px">
@@ -197,7 +180,22 @@
 
 		{% verbatim %}
 		<article id="VueApp">
-			<section class="row pt-header" id="step3">
+			<section class="row pt-header d-flex justify-content-center" id="step2">
+				<h2 class="font_Gogh fs_40 cake_blue text-center mb-3">Готовые торты</h2>
+
+				<div class="col-12 col-sm-6 col-lg-4 d-flex flex-column align-items-center" v-for="cake in cakes" :key="cake.pk">
+					<div class="card border-0 cake__hover w-100">
+						<img :src="cake.image" :alt="cake.name" class="">
+						<span class="cake_blue mt-4 fw-lighter mb-2 text-center">{{ cake.name }}</span>
+						<span class="cake_grey fw-lighter mb-4 text-center">{{ cake.price }} руб.</span>
+						<div class="d-flex justify-content-center mb-4">
+							<a @click="Buy(cake.pk)" class="btn text-white rounded-pill shadow-none cake__button cake__bg_pink">Купить</a>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<section class="row pt-header" id="step3" v-if="!Cake">
 				<h2 class="font_Gogh fs_40 cake_blue text-center">Создать свой торт</h2>
 				<v-form :validation-schema="schema1" @submit="ToStep4">
 					<div class="d-flex justify-content-end align-items-center position-relative">
@@ -258,14 +256,19 @@
 					</div>
 					<div class="d-flex justify-content-end">
 						<button type="submit" class="btn text-white rounded-pill mt-3 shadow-none cake__button cake__bg_pink">Подтвердить</button>
-						<a href="#step4" ref="ToStep4" class="d-none"></a>
-					</div>
-				</v-form>
-			</section>
+				</div>
+			</v-form>
+		</section>
 
-			<section class="row pt-header" id="step4" v-if="Designed">
+		<a href="#step4" ref="ToStep4" class="d-none"></a>
+
+		<section class="row pt-header" id="step4" v-if="Designed">
 				{% endverbatim %}
 				<form class="d-none" method="post" action="{% url 'cakes:order' %}">{% csrf_token %}
+				<select name="CAKE" v-model="Cake" class="d-none">
+					<option value="">нет</option>
+					{% for cake in cakes %}<option value="{{ cake.pk }}">{{ cake.name }}</option>{% endfor %}
+				</select>
 				{% verbatim %}
 					<input v-model="Levels" value="1" type="radio" name="LEVELS">
 					<input v-model="Levels" value="2" type="radio" name="LEVELS">
@@ -340,20 +343,21 @@
 									<error-message name="email_format" class="position-absolute bottom-0 cake_pink fs_12"></error-message>
 								</div>
 							</div>
-							<div class="col-12 col-lg-4 d-flex justify-content-center justify-content-lg-end">
-								<div class="cake__card p-4 position-relative cake_grey">
-									<span class="cake__badge rounded-pill">?</span>
-									<span>Количество уровней: {{ DATA.Levels[Levels] }}</span>
-									<span>Форма уровней: {{ DATA.Forms[Form] }}</span>
-									<p>Топинг: {{ DATA.Toppings[Topping] }}</p>
-									<span>Дополнительно:</span>
-									<ul>
-										<li>Ягоды: {{ DATA.Berries[Berries] }}</li>
-										<li>Декор: {{ DATA.Decors[Decor] }}</li>
-									</ul>
-									<span>{{ Words === '' ? 'Без надписи' : Words }}</span>
+<div class="col-12 col-lg-4 d-flex justify-content-center justify-content-lg-end">
+									<div class="cake__card p-4 position-relative cake_grey" v-if="!Cake">
+										<span class="cake__badge rounded-pill">?</span>
+										<span>Количество уровней: {{ DATA.Levels[Levels] }}</span>
+										<span>Форма уровней: {{ DATA.Forms[Form] }}</span>
+										<p>Топинг: {{ DATA.Toppings[Topping] }}</p>
+										<span>Дополнительно:</span>
+										<ul>
+											<li>Ягоды: {{ DATA.Berries[Berries] }}</li>
+											<li>Декор: {{ DATA.Decors[Decor] }}</li>
+										</ul>
+										<span>{{ Words === '' ? 'Без надписи' : Words }}</span>
+									</div>
+									<button type="button" @click="Unpick" class="btn text-white rounded-pill px-4 py-3 shadow-none cake__button cake__bg_blue" v-if="Cake">Отменить выбор</button>
 								</div>
-							</div>
 						</div>
 						<div class="d-flex flex-column position-relative pb-4">
 							<h2 class="fs_40 cake_pink">Данные для доставки</h2>
@@ -428,6 +432,7 @@
 </footer>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 {{ options|json_script:"options-data" }}
+{{ cakes|json_script:"cakes-data" }}
 <script src="{% static 'js/index.js' %}"></script>
 <script src="{% static 'js/registration.js' %}"></script>
 </body>
