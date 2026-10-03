@@ -166,15 +166,39 @@ Vue.createApp({
         }
     },
     computed: {
-        Cost() {
+        BaseCost() {
             const cake = this.cakes.find((c) => c.pk == this.Cake);
             if (cake) {
                 return cake.price;
             }
-            let W = this.Words ? this.Costs.Words : 0
+            let W = this.Words ? this.Costs.Words : 0;
             return this.Costs.Levels[this.Levels] + this.Costs.Forms[this.Form] +
                 this.Costs.Toppings[this.Topping] + this.Costs.Berries[this.Berries] +
-                this.Costs.Decors[this.Decor] + W
+                this.Costs.Decors[this.Decor] + W;
+        },
+
+        IsUrgent() {
+            if (!this.Dates || !this.Time) {
+            return false;
+            }
+
+            const delivery = new Date(this.Dates + "T" + this.Time);
+            const now = new Date();
+
+            const hoursLeft = (delivery - now) / (1000 * 60 * 60);
+
+            return hoursLeft < 24;
+        },
+
+        UrgentSurcharge() {
+            if (this.IsUrgent) {
+                return Math.round(this.BaseCost * 0.2);
+            }
+            return 0;
+        },
+
+        Cost() {
+            return this.BaseCost + this.UrgentSurcharge;
         }
     }
 }).mount('#VueApp')
