@@ -6,7 +6,11 @@ Vue.createApp({
         ErrorMessage: VeeValidate.ErrorMessage,
     },
     data() {
+        const opts = JSON.parse(
+            document.getElementById("options-data").textContent
+        );
         return {
+            options: opts,
             schema1: {
                 lvls: (value) => {
                     if (value) {
@@ -99,18 +103,18 @@ Vue.createApp({
                 }
             },
             DATA: {
-                Levels: ['не выбрано', '1', '2', '3'],
-                Forms: ['не выбрано', 'Круг', 'Квадрат', 'Прямоугольник'],
-                Toppings: ['не выбрано', 'Без', 'Белый соус', 'Карамельный', 'Кленовый', 'Черничный', 'Молочный шоколад', 'Клубничный'],
-                Berries: ['нет', 'Ежевика', 'Малина', 'Голубика', 'Клубника'],
-                Decors: [ 'нет', 'Фисташки', 'Безе', 'Фундук', 'Пекан', 'Маршмеллоу', 'Марципан']
+                Levels: ['не выбрано', ...opts.levels.map((o) => o.name)],
+                Forms: ['не выбрано', ...opts.forms.map((o) => o.name)],
+                Toppings: ['не выбрано', ...opts.toppings.map((o) => o.name)],
+                Berries: ['нет', ...opts.berries.map((o) => o.name)],
+                Decors: ['нет', ...opts.decors.map((o) => o.name)],
             },
             Costs: {
-                Levels: [0, 400, 750, 1100],
-                Forms: [0, 600, 400, 1000],
-                Toppings: [0, 0, 200, 180, 200, 300, 350, 200],
-                Berries: [0, 400, 300, 450, 500],
-                Decors: [0, 300, 400, 350, 300, 200, 280],
+                Levels: [0, ...opts.levels.map((o) => o.price)],
+                Forms: [0, ...opts.forms.map((o) => o.price)],
+                Toppings: [0, ...opts.toppings.map((o) => o.price)],
+                Berries: [0, ...opts.berries.map((o) => o.price)],
+                Decors: [0, ...opts.decors.map((o) => o.price)],
                 Words: 500
             },
             Levels: 0,
