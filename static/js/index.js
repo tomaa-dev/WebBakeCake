@@ -12,6 +12,8 @@ Vue.createApp({
         return {
             options: opts,
             cakes: JSON.parse(document.getElementById("cakes-data").textContent),
+            Auth: JSON.parse(document.getElementById("auth-data").textContent),
+            NeedReg: false,
             Cake: null,
             schema1: {
                 lvls: (value) => {
@@ -140,7 +142,7 @@ Vue.createApp({
     methods: {
         Buy(pk) {
             this.Cake = pk;
-            this.ToStep4()
+            this.ToStep4('buy')
         },
         Unpick() {
             this.Cake = null;
@@ -154,7 +156,11 @@ Vue.createApp({
             this.Comments = '';
             window.scrollTo(0, 0)
         },
-        ToStep4() {
+        ToStep4(from) {
+            if (!this.Auth) {
+                this.NeedReg = from
+                return
+            }
             this.Designed = true
             setTimeout(() => this.$refs.ToStep4.click(), 0);
         }
