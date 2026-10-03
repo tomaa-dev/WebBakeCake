@@ -69,7 +69,7 @@ class OrderForm(forms.Form):
         constructor = (cleaned_data.get("LEVELS"), cleaned_data.get("FORM"), cleaned_data.get("TOPPING"))
         if cleaned_data.get("CAKE"):
             cleaned_data["WORDS"] = ""
-        if not all(constructor):
+        if not all(constructor) and not cleaned_data.get("CAKE"):
             raise forms.ValidationError("Выберите все необходимые опции!")
 
         return cleaned_data

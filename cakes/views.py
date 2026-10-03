@@ -27,7 +27,7 @@ def index(request):
         "reg_step": step,
         "reg_open": reg != "",
         "reg_phone": phone,
-        "cakes": Cake.objects.all(),
+        "cakes": [{"pk": c.pk, "name": c.name, "price": c.price, "image": c.image.url} for c in Cake.objects.all()],
         "options": {
             "levels": list(Level.objects.values("index_value", "name", "price")),
             "forms": list(CakeForm.objects.values("index_value", "name", "price")),

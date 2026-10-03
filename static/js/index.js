@@ -11,6 +11,8 @@ Vue.createApp({
         );
         return {
             options: opts,
+            cakes: JSON.parse(document.getElementById("cakes-data").textContent),
+            Cake: null,
             schema1: {
                 lvls: (value) => {
                     if (value) {
@@ -136,6 +138,22 @@ Vue.createApp({
         }
     },
     methods: {
+        Buy(pk) {
+            this.Cake = pk;
+            this.ToStep4()
+        },
+        Unpick() {
+            this.Cake = null;
+            this.Designed = false;
+            this.Levels = 0;
+            this.Form = 0;
+            this.Topping = 0;
+            this.Berries = 0;
+            this.Decor = 0;
+            this.Words = '';
+            this.Comments = '';
+            window.scrollTo(0, 0)
+        },
         ToStep4() {
             this.Designed = true
             setTimeout(() => this.$refs.ToStep4.click(), 0);
@@ -143,6 +161,10 @@ Vue.createApp({
     },
     computed: {
         Cost() {
+            const cake = this.cakes.find((c) => c.pk == this.Cake);
+            if (cake) {
+                return cake.price;
+            }
             let W = this.Words ? this.Costs.Words : 0
             return this.Costs.Levels[this.Levels] + this.Costs.Forms[this.Form] +
                 this.Costs.Toppings[this.Topping] + this.Costs.Berries[this.Berries] +
