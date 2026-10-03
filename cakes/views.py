@@ -73,11 +73,6 @@ def lk_profile(request):
     return redirect("cakes:lk")
 
 
-@login_required
-def lk_order(request):
-    return render(request, "lk-order.html")
-
-
 def _fail(request, flag, form=None):
     if form is not None:
         for errors in form.errors.values():
@@ -111,10 +106,7 @@ def reg(request):
         user, _ = get_or_create_user(phone)
         if user.pd_consent_at is None:
             user.pd_consent_at = datetime.fromisoformat(consent["at"])
-            user.save(update_fields=["pd_consent_at"])  # запись о согласии
-        request.session["pd_consent"] = (
-            consent  # TODO на строку завязан один из лишних тестов. После чистки стоит убрать
-        )
+            user.save(update_fields=["pd_consent_at"])
         login(request, user)
         messages.success(request, f"Готово, вы зарегистрированы как {phone}")
         return redirect("/")
