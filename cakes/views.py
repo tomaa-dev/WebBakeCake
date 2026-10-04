@@ -3,6 +3,7 @@ from datetime import datetime
 
 from django.contrib import messages
 from django.contrib.auth import login
+from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.db.models import F
 from django.shortcuts import redirect, render
@@ -27,7 +28,10 @@ def index(request):
         "reg_step": step,
         "reg_open": reg != "",
         "reg_phone": phone,
-        "cakes": [{"pk": c.pk, "name": c.name, "price": c.price, "image": c.image.url} for c in Cake.objects.all()],
+        "cakes": [
+            {"pk": c.pk, "name": c.name, "price": c.price, "image": c.image.url if c.image else ""}
+            for c in Cake.objects.all()
+        ],
         "options": {
             "levels": list(Level.objects.values("index_value", "name", "price")),
             "forms": list(CakeForm.objects.values("index_value", "name", "price")),
@@ -45,7 +49,7 @@ def lk(request):
         "name": request.user.first_name,
         "email": request.user.email,
         "edit": request.GET.get("edit") == "1",
-        "orders": request.user.order_set.all(),
+        "orders": request.user.order_set.select_related("cake", "level", "cake_form", "topping", "berry", "decor"),
     }
     return render(request, "lk.html", context)
 
@@ -63,7 +67,9 @@ def lk_profile(request):
                 "name": form.data.get("name", ""),
                 "email": form.data.get("email", ""),
                 "edit": True,
-                "orders": request.user.order_set.all(),
+                "orders": request.user.order_set.select_related(
+                    "cake", "level", "cake_form", "topping", "berry", "decor"
+                ),
             },
         )
     request.user.first_name = form.cleaned_data["name"]
@@ -89,13 +95,12 @@ def reg(request):
         if not form.is_valid():
             return _fail(request, "code-error", form)
 
-        expected = request.session.get("reg_code")
+        expected = request.session.pop("reg_code", None)
         if not expected or form.cleaned_data["code"] != expected:
             messages.error(request, "Неверный код подтверждения, запросите новый")
             return _fail(request, "code-error")
 
         phone = request.session.pop("reg_phone", None)
-        request.session.pop("reg_code", None)
         consent = request.session.pop("reg_consent", None)
         if not phone:
             return _fail(request, "phone-error")
@@ -128,8 +133,9 @@ def reg(request):
     return redirect("/?reg=code")
 
 
+@require_POST
 def logout(request):
-    request.session.flush()
+    auth_logout(request)
     return redirect("/")
 
 
@@ -168,4 +174,4 @@ def order(request):
     order.save()
 
     messages.success(request, "Заказ принят!")
-    return redirect("cakes:index")  # создадим список заказа - редирект лучше туда наверное сделать
+    return redirect("cakes:lk")  # поправил редирект

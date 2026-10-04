@@ -165,7 +165,10 @@
 			{% endfor %}
 			<span class="cake_grey">Есть вопросы?</span>
 			<span class="cake_grey">Воспользуйтесь нашим <a href="https://vk.com/devmanorg" class="text-decoration-none cake_pink">чат-ботом</a>.</span>
-			<a class="btn text-white rounded-pill align-self-end px-5 mt-3 shadow-none cake__button cake__bg_pink" href="{% url 'cakes:logout' %}">Выйти</a>
+			<form method="post" action="{% url 'cakes:logout' %}" class="align-self-end">
+			{% csrf_token %}
+			<button type="submit" class="btn text-white rounded-pill px-5 mt-3 shadow-none cake__button cake__bg_pink">Выйти</button>
+			</form>
 		</div>
 	</div>
 </div>
