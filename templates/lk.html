@@ -163,8 +163,6 @@
 			<span class="cake_grey">У вас еще нет заказов.</span>
 			<p class="cake_grey">Вы можете добавить торт из <a href="{% url 'cakes:index' %}#step2" class="text-decoration-none cake_pink">Каталога</a> или <a href="{% url 'cakes:index' %}#step3" class="text-decoration-none cake_pink">Создать свой</a>.</p>
 			{% endfor %}
-			<span class="cake_grey">Есть вопросы?</span>
-			<span class="cake_grey">Воспользуйтесь нашим <a href="https://vk.com/devmanorg" class="text-decoration-none cake_pink">чат-ботом</a>.</span>
 			<form method="post" action="{% url 'cakes:logout' %}" class="align-self-end">
 			{% csrf_token %}
 			<button type="submit" class="btn text-white rounded-pill px-5 mt-3 shadow-none cake__button cake__bg_pink">Выйти</button>
