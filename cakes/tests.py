@@ -11,6 +11,7 @@ from .models import (
     CakeForm,
     Level,
     Order,
+    Topping,
 )
 
 User = get_user_model()
@@ -364,3 +365,52 @@ class OrderRegistrationTests(TestCase):
         self._register()
         body = self.client.get("/").content.decode()
         self.assertIn('id="auth-data" type="application/json">true<', body)
+
+
+class CustomOrderTests(TestCase):
+    def setUp(self):
+        self.level = Level.objects.create(name="Три уровня", price=1000, index_value=1)
+        self.cake_form = CakeForm.objects.create(name="Круглый", price=500, index_value=1)
+        self.topping = Topping.objects.create(name="Фруктовый", price=300, index_value=1)
+        self.data = {
+            "LEVELS": self.level.index_value,
+            "FORM": self.cake_form.index_value,
+            "TOPPING": self.topping.index_value,
+            "NAME": "Анна",
+            "PHONE": "+7 999 123-45-67",
+            "EMAIL": "anna@example.com",
+            "ADDRESS": "ул. Тестовая 1",
+            "DATE": date.today() + timedelta(days=5),
+            "TIME": "12:00",
+        }
+
+    def _register(self):
+        self.client.post("/reg/", {"step": "phone", "phone": "8 999 123-45-67", "agree": "1"})
+        self.client.post("/reg/", {"step": "code", "code": self.client.session["reg_code"]})
+
+    def test_chosen_options_are_attached_to_the_order(self):
+        self._register()
+        self.client.post("/order/", self.data)
+        order = Order.objects.get()
+        self.assertEqual(order.level, self.level)
+        self.assertEqual(order.cake_form, self.cake_form)
+        self.assertEqual(order.topping, self.topping)
+
+    def test_options_are_matched_by_index_value(self):
+        second = Level.objects.create(name="Два уровня", price=800, index_value=2)
+        self._register()
+        self.client.post("/order/", {**self.data, "LEVELS": second.index_value})
+        self.assertEqual(Order.objects.get().level, second)
+
+    def test_order_without_shape_is_rejected(self):
+        self._register()
+        data = {key: value for key, value in self.data.items() if key != "FORM"}
+        self.client.post("/order/", data)
+        self.assertEqual(Order.objects.count(), 0)
+
+    def test_optional_options_are_saved_when_present(self):
+        self._register()
+        self.client.post("/order/", {**self.data, "WORDS": "С днем рождения"})
+        order = Order.objects.get()
+        self.assertEqual(order.inscription, "С днем рождения")
+        self.assertIsNone(order.cake)

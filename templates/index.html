@@ -277,34 +277,11 @@
 					{% for cake in cakes %}<option value="{{ cake.pk }}">{{ cake.name }}</option>{% endfor %}
 				</select>
 				{% verbatim %}
-					<input v-model="Levels" value="1" type="radio" name="LEVELS">
-					<input v-model="Levels" value="2" type="radio" name="LEVELS">
-					<input v-model="Levels" value="3" type="radio" name="LEVELS">
-					<br>
-					<input v-model="Form" value="1" type="radio" name="FORM">
-					<input v-model="Form" value="2" type="radio" name="FORM">
-					<input v-model="Form" value="3" type="radio" name="FORM">
-					<br>
-					<input v-model="Topping" value="1" type="radio" name="TOPPING">
-					<input v-model="Topping" value="2" type="radio" name="TOPPING">
-					<input v-model="Topping" value="3" type="radio" name="TOPPING">
-					<input v-model="Topping" value="4" type="radio" name="TOPPING">
-					<input v-model="Topping" value="5" type="radio" name="TOPPING">
-					<input v-model="Topping" value="6" type="radio" name="TOPPING">
-					<input v-model="Topping" value="7" type="radio" name="TOPPING">
-					<br>
-					<input v-model="Berries" value="1" type="radio" name="BERRIES">
-					<input v-model="Berries" value="2" type="radio" name="BERRIES">
-					<input v-model="Berries" value="3" type="radio" name="BERRIES">
-					<input v-model="Berries" value="4" type="radio" name="BERRIES">
-					<br>
-					<input v-model="Decor" value="1" type="radio" name="DECOR">
-					<input v-model="Decor" value="2" type="radio" name="DECOR">
-					<input v-model="Decor" value="3" type="radio" name="DECOR">
-					<input v-model="Decor" value="4" type="radio" name="DECOR">
-					<input v-model="Decor" value="5" type="radio" name="DECOR">
-					<input v-model="Decor" value="6" type="radio" name="DECOR">
-					<br>
+					<input type="hidden" name="LEVELS" :value="Levels || ''">
+					<input type="hidden" name="FORM" :value="Form || ''">
+					<input type="hidden" name="TOPPING" :value="Topping || ''">
+					<input type="hidden" name="BERRIES" :value="Berries || ''">
+					<input type="hidden" name="DECOR" :value="Decor || ''">
 					<input v-model="Words" type="text" name="WORDS">
 					<input v-model="Comments" type="text" name="COMMENTS">
 
