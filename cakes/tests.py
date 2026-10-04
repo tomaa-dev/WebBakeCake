@@ -96,7 +96,7 @@ class RegistrationFlowTests(TestCase):
         code = self.client.session["reg_code"]
         self.client.post("/reg/", {"step": "code", "code": code, "agree": "1"})
 
-        self.client.get("/logout/")
+        self.client.post("/logout/")
         self.assertNotIn("_auth_user_id", self.client.session)
 
 
@@ -154,7 +154,7 @@ class PersonalCabinetTests(TestCase):
     def test_exit_button_leads_to_logout(self):
         self._register()
         body = self.client.get("/lk/").content.decode()
-        self.assertIn('href="/logout/"', body)
+        self.assertIn('action="/logout/"', body)
 
 
 class ProfileSavingTests(TestCase):
