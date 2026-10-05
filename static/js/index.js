@@ -55,7 +55,7 @@ Vue.createApp({
                     }
                     if ( !regex.test(value)) {
 
-                        return '⚠ Формат имени нарушен';
+                        return 'Формат имени нарушен';
                     }
                     return true;
                 },
@@ -66,7 +66,7 @@ Vue.createApp({
                     }
                     if ( !regex.test(value)) {
 
-                        return '⚠ Формат почты нарушен';
+                        return 'Формат почты нарушен';
                     }
                     return true;
                 },
@@ -77,7 +77,7 @@ Vue.createApp({
                     }
                     if ( !regex.test(value)) {
 
-                        return '⚠ Формат телефона нарушен';
+                        return 'Формат телефона нарушен';
                     }
                     return true;
                 },

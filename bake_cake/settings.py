@@ -10,7 +10,6 @@ env.read_env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# TODO не забыть обновить env.example в конце
 
 SECRET_KEY = env("SECRET_KEY")
 DEBUG = env.bool("DEBUG", True)

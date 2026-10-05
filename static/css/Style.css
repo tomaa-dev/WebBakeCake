@@ -113,7 +113,7 @@ li .cake__textinput:read-only {
     content: ',';
 }
 .from__alert:first-child:before {
-    content: '⚠ Необходимо выбрать ';
+    content: 'Необходимо выбрать ';
 }
 .lk__order {
     cursor: pointer;

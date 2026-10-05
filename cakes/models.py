@@ -110,24 +110,20 @@ class Order(models.Model):
     email = models.EmailField("Почта", max_length=50)
 
     address = models.CharField("Адрес", max_length=100)
-    delivery_date = models.DateField("Дата доставки")  # хз в каком формате приходит, возможно придётся отформатировать
+    delivery_date = models.DateField("Дата доставки")
     delivery_time = models.TimeField("Время доставки")
 
     delivery_comment = models.TextField("Комментарий курьеру", blank=True)
 
     cake = models.ForeignKey(Cake, verbose_name="Готовый торт", on_delete=models.PROTECT, null=True, blank=True)
 
-    level = models.ForeignKey(
-        Level, verbose_name="Уровни", on_delete=models.PROTECT, null=True, blank=True
-    )  # null=true потому что теперь есть готовые торты
+    level = models.ForeignKey(Level, verbose_name="Уровни", on_delete=models.PROTECT, null=True, blank=True)
     cake_form = models.ForeignKey(CakeForm, verbose_name="Форма", on_delete=models.PROTECT, null=True, blank=True)
     topping = models.ForeignKey(Topping, verbose_name="Топпинг", on_delete=models.PROTECT, null=True, blank=True)
-    berry = models.ForeignKey(
-        Berries, verbose_name="Ягоды", on_delete=models.PROTECT, null=True, blank=True
-    )  # там в хтмльках нет возможность "отжать" кнопку, поправит надо бы
+    berry = models.ForeignKey(Berries, verbose_name="Ягоды", on_delete=models.PROTECT, null=True, blank=True)
     decor = models.ForeignKey(Decor, verbose_name="Декор", on_delete=models.PROTECT, null=True, blank=True)
 
-    inscription = models.CharField("Надпись", max_length=50, blank=True)  # сколько вместится на торт?
+    inscription = models.CharField("Надпись", max_length=50, blank=True)
     cake_comment = models.TextField("Комментарий к заказу", blank=True)
 
     price = models.PositiveIntegerField("Общая цена")
@@ -156,9 +152,6 @@ class Order(models.Model):
         if self.is_urgent():
             price += price * URGENT_PERCENT_PRICE_INCREASE // 100
         self.price = price
-
-
-# ниже просто взял со self_storage, если что уберём
 
 
 class AdLink(models.Model):
