@@ -1,5 +1,4 @@
 import secrets
-from datetime import datetime
 
 from django.contrib import messages
 from django.contrib.auth import login
@@ -10,7 +9,7 @@ from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from .forms import CONSENT_VERSION, CodeForm, OrderForm, PhoneForm, ProfileForm, get_or_create_user
+from .forms import CodeForm, OrderForm, PhoneForm, ProfileForm, get_or_create_user
 from .models import AdLink, Berries, Cake, CakeForm, Decor, Level, Order, Topping
 
 
@@ -19,7 +18,7 @@ def index(request):
     if tag and request.session.get("utm") != tag:
         updated = AdLink.objects.filter(tag=tag).update(visits=F("visits") + 1)
         if updated:
-            request.session["utm"] = tag  # подсчёт кликов
+            request.session["utm"] = tag
 
     reg = request.GET.get("reg", "")
     step = {"code": "Code", "code-error": "Code", "phone-error": "Number"}.get(reg, "Number")
@@ -101,16 +100,12 @@ def reg(request):
             return _fail(request, "code-error")
 
         phone = request.session.pop("reg_phone", None)
-        consent = request.session.pop("reg_consent", None)
         if not phone:
-            return _fail(request, "phone-error")
-        if not consent or consent["phone"] != phone:
-            messages.error(request, "Подтвердите согласие на обработку персональных данных")
             return _fail(request, "phone-error")
 
         user, _ = get_or_create_user(phone)
         if user.pd_consent_at is None:
-            user.pd_consent_at = datetime.fromisoformat(consent["at"])
+            user.pd_consent_at = timezone.now()
             user.save(update_fields=["pd_consent_at"])
         login(request, user)
         messages.success(request, f"Готово, вы зарегистрированы как {phone}")
@@ -124,11 +119,6 @@ def reg(request):
     code = f"{secrets.randbelow(9000) + 1000:04d}"
     request.session["reg_phone"] = phone
     request.session["reg_code"] = code
-    request.session["reg_consent"] = {
-        "phone": phone,
-        "at": timezone.now().isoformat(),
-        "version": CONSENT_VERSION,
-    }
     messages.info(request, f"Демо-режим: код подтверждения — {code}. Введите его в окне.")
     return redirect("/?reg=code")
 
@@ -137,9 +127,6 @@ def reg(request):
 def logout(request):
     auth_logout(request)
     return redirect("/")
-
-
-# Принятие заказа
 
 
 @login_required
@@ -174,4 +161,4 @@ def order(request):
     order.save()
 
     messages.success(request, "Заказ принят!")
-    return redirect("cakes:lk")  # поправил редирект
+    return redirect("cakes:lk")
